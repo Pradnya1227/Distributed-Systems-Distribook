@@ -1,0 +1,66 @@
+Classrooms:
+| Room No. | Type      | Capacity |
+| -------- | --------- | -------: |
+| 6101CR   | Classroom |       60 |
+| 6102CR   | Classroom |       60 |
+| 6103CR   | Classroom |       60 |
+| 6104CR   | Classroom |       60 |
+| 6201CR   | Classroom |       60 |
+| 6202CR   | Classroom |       60 |
+| 6203CR   | Classroom |       60 |
+| 6204CR   | Classroom |       60 |
+| 6301CR   | Classroom |       60 |
+| 6302CR   | Classroom |       60 |
+| 6303CR   | Classroom |       60 |
+| 6304CR   | Classroom |       60 |
+| 6401CR   | Classroom |       60 |
+| 6402CR   | Classroom |       60 |
+| 6403CR   | Classroom |       60 |
+| 6404CR   | Classroom |       60 |
+| 9510CR   | Classroom |       60 |
+| 9511CR   | Classroom |       60 |
+| 9512CR   | Classroom |       60 |
+| 9513CR   | Classroom |       60 |
+
+labs:
+| Room No.   | Type         | Capacity |
+| ---------- | ------------ | -------: |
+| 6009LA     | Computer Lab |       30 |
+| 6210LA     | Computer Lab |       30 |
+| 6222LA     | Computer Lab |       30 |
+| 6230LA     | Computer Lab |       30 |
+| 6231LA     | Computer Lab |       30 |
+| 6232LA     | Computer Lab |       30 |
+| New CC1 LA | Computer Lab |       30 |
+| New CC2 LA | Computer Lab |       30 |
+| New CC3 LA | Computer Lab |       30 |
+
+central facilities:
+| Room No. / Name | Type              | Capacity |
+| --------------- | ----------------- | -------: |
+| ARCH-HALL       | Architecture Hall |      150 |
+| SEM-HALL-01     | Seminar Hall      |      200 |
+| SEM-HALL-02     | Seminar Hall      |      100 |
+| READ-HALL       | Reading Hall      |      120 |
+| AUDITORIUM      | Auditorium        |      500 |
+
+mechanical building:
+| Building | Room No.  | Type                    | Capacity |
+| -------- | --------- | ----------------------- | -------: |
+| 9        | 9101CR    | Classroom               |       60 |
+| 9        | 9102CR    | Classroom               |       60 |
+| 9        | 9103CR    | Classroom               |       60 |
+| 9        | 9104CR    | Classroom               |       60 |
+| 9        | 9201CR    | Classroom               |       60 |
+| 9        | 9202CR    | Classroom               |       60 |
+| 9        | 9203CR    | Classroom               |       60 |
+| 9        | 9204CR    | Classroom               |       60 |
+| 9        | 9001LA    | Mechanical Lab          |       30 |
+| 9        | 9002LA    | CAD/CAM Lab             |       30 |
+| 9        | 9003LA    | Manufacturing Lab       |       30 |
+| 9        | 9004LA    | Thermal Engineering Lab |       30 |
+| 9        | 9005LA    | Fluid Mechanics Lab     |       30 |
+| 9        | MECH-HALL | Department Hall         |      150 |
+
+
+

@@ -3,7 +3,7 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 import { authMiddleware, requireRoles, AuthenticatedRequest } from './middleware/auth';
-import { connectRabbitMQ, publishBookingEvent } from './messaging/rabbitmq';
+import { connectRabbitMQ, publishBookingEvent, getLamportClock, resetLamportClock } from './messaging/rabbitmq';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -88,8 +88,17 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'UP',
     service: 'booking-service',
+    lamportClock: getLamportClock(),
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
+  });
+});
+
+// Public Lamport Clock Status (Distributed Systems Verification)
+app.get('/lamport', (req, res) => {
+  res.json({
+    service: 'booking-service',
+    lamportClock: getLamportClock()
   });
 });
 

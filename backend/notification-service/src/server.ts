@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { authMiddleware, AuthenticatedRequest } from './middleware/auth';
-import { startNotificationConsumer } from './consumers/bookingEvents.consumer';
+import { startNotificationConsumer, getLamportClock, resetLamportClock } from './consumers/bookingEvents.consumer';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -22,8 +22,17 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'UP',
     service: 'notification-service',
+    lamportClock: getLamportClock(),
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
+  });
+});
+
+// Public Lamport Clock Status (Distributed Systems Verification)
+app.get('/lamport', (req, res) => {
+  res.json({
+    service: 'notification-service',
+    lamportClock: getLamportClock()
   });
 });
 

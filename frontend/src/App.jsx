@@ -1671,6 +1671,7 @@ function ServicesPage() {
             status: "online",
             latency: Math.round(end - start),
             uptime: data.uptime ? `${Math.round(data.uptime)}s` : "Active",
+            lamportClock: data.lamportClock !== undefined ? data.lamportClock : null,
             lastChecked: new Date().toLocaleTimeString(),
             error: null
           };
@@ -1679,6 +1680,7 @@ function ServicesPage() {
             status: "offline",
             latency: null,
             uptime: null,
+            lamportClock: null,
             lastChecked: new Date().toLocaleTimeString(),
             error: `HTTP ${res.status}`
           };
@@ -1688,6 +1690,7 @@ function ServicesPage() {
           status: "offline",
           latency: null,
           uptime: null,
+          lamportClock: null,
           lastChecked: new Date().toLocaleTimeString(),
           error: err.name === "AbortError" ? "Timeout (>3s)" : "Unreachable"
         };
@@ -1748,6 +1751,12 @@ function ServicesPage() {
                   <span style={{ color: C.inkFaint }}>Status Detail: </span>
                   <b style={{ color: isOnline ? C.green600 : C.red600 }}>{h.error ? h.error : (isOnline ? "Healthy (200 OK)" : "Checking...")}</b>
                 </div>
+                {h.lamportClock !== null && h.lamportClock !== undefined && (
+                  <div style={{ gridColumn: "span 2", borderTop: `1px dashed ${C.border}`, paddingTop: 6, marginTop: 2 }}>
+                    <span style={{ color: C.inkFaint }}>Lamport Logical Clock: </span>
+                    <b style={{ color: C.brand }}>L = {h.lamportClock}</b>
+                  </div>
+                )}
               </div>
             </Card>
           );

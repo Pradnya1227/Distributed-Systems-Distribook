@@ -6,6 +6,17 @@ const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5
 const EXCHANGE_NAME = 'distrbook.booking.events';
 const QUEUE_NAME = 'distrbook.notification.queue';
 
+// Distributed Systems: Lamport Logical Clock (In-Memory Monotonic Counter)
+let notificationLamportClock = 0;
+
+export function getLamportClock(): number {
+  return notificationLamportClock;
+}
+
+export function resetLamportClock(val = 0): void {
+  notificationLamportClock = val;
+}
+
 export async function startNotificationConsumer() {
   try {
     const connection = await amqp.connect(RABBITMQ_URL);
@@ -25,7 +36,14 @@ export async function startNotificationConsumer() {
       try {
         const content = JSON.parse(msg.content.toString());
         const eventType = msg.properties.headers?.['event-type'] || 'BOOKING_CREATED';
-        console.log(`[Notification Consumer] Received event ${eventType}:`, content);
+
+        // Lamport Receive Rule: L_j = max(L_j, L_msg) + 1
+        const rawIncoming = msg.properties.headers?.['lamport-clock'] ?? content.lamportClock;
+        const incomingClock = (typeof rawIncoming === 'number' && !isNaN(rawIncoming)) ? rawIncoming : 0;
+        notificationLamportClock = Math.max(notificationLamportClock, incomingClock) + 1;
+        const currentLamport = notificationLamportClock;
+
+        console.log(`[Notification Consumer] [Lamport Clock: L=${currentLamport}] Received event ${eventType} (incoming L=${incomingClock}):`, content);
 
         const notifications: Array<{ userEmail: string; title: string; message: string }> = [];
         const resourceId = content.resourceId;
@@ -44,19 +62,18 @@ export async function startNotificationConsumer() {
             headers: { 'X-User-Email': 'admin@pccoepune.org' }
           });
           const resource = res.data;
-          // Assume resource has a coordinatorEmail field used for both hall coordinator and lab assistant
-            // Determine secondary approver with laboratory priority
-            const typeLower = (resource.type || '').toLowerCase();
-            if (typeLower.includes('lab')) {
-              secondaryEmail = 'labassistant@pccoepune.org';
-              secondaryTitle = 'Lab Assistant';
-            } else if (resource.coordinatorEmail) {
-              secondaryEmail = resource.coordinatorEmail;
-              secondaryTitle = 'Hall Coordinator';
-            } else {
-              secondaryEmail = '';
-              secondaryTitle = '';
-            }
+          // Determine secondary approver with laboratory priority
+          const typeLower = (resource.type || '').toLowerCase();
+          if (typeLower.includes('lab')) {
+            secondaryEmail = 'labassistant@pccoepune.org';
+            secondaryTitle = 'Lab Assistant';
+          } else if (resource.coordinatorEmail) {
+            secondaryEmail = resource.coordinatorEmail;
+            secondaryTitle = 'Hall Coordinator';
+          } else {
+            secondaryEmail = '';
+            secondaryTitle = '';
+          }
         } catch (e) {
           const err = e as any;
           console.error('Failed to fetch resource for notification routing:', err.message);
@@ -75,7 +92,7 @@ export async function startNotificationConsumer() {
             // Send request alert to student
             notifications.push({
               userEmail: content.userEmail,
-              title: 'Booking Request Submitted',
+              title: `[L=${currentLamport}] Booking Request Submitted`,
               message: `Your booking request for ${resourceId} on ${dateDisplay} (${timeDisplay}) has been submitted.`
             });
 
@@ -83,7 +100,7 @@ export async function startNotificationConsumer() {
             if (content.facultyEmail && !content.facultyApproved) {
               notifications.push({
                 userEmail: content.facultyEmail,
-                title: 'Student request requires your approval',
+                title: `[L=${currentLamport}] Student request requires your approval`,
                 message: `${content.userName} requested ${resourceId} under your in-charge for "${content.purpose}" on ${dateDisplay}.`
               });
             } else {
@@ -91,7 +108,7 @@ export async function startNotificationConsumer() {
               if (content.status === 'pending') {
                 notifications.push({
                   userEmail: secondaryEmail,
-                  title: `${secondaryTitle} Approval Required`,
+                  title: `[L=${currentLamport}] ${secondaryTitle} Approval Required`,
                   message: `New booking request for controlled resource ${resourceId} requires your approval.`
                 });
               }
@@ -101,12 +118,12 @@ export async function startNotificationConsumer() {
           case 'BOOKING_FACULTY_APPROVED':
             notifications.push({
               userEmail: content.userEmail,
-              title: 'Faculty Approved Request',
+              title: `[L=${currentLamport}] Faculty Approved Request`,
               message: `Faculty approved your request for ${resourceId}. It is now awaiting ${secondaryTitle} approval.`
             });
             notifications.push({
               userEmail: secondaryEmail,
-              title: `Faculty-Approved Request Requires Approval`,
+              title: `[L=${currentLamport}] Faculty-Approved Request Requires Approval`,
               message: `Faculty approved student request for ${resourceId} on ${dateDisplay}. Requires your approval.`
             });
             break;
@@ -116,7 +133,7 @@ export async function startNotificationConsumer() {
           case 'ADMIN_APPROVED':
             notifications.push({
               userEmail: content.userEmail,
-              title: 'Booking Approved',
+              title: `[L=${currentLamport}] Booking Approved`,
               message: `Your booking request for ${resourceId} on ${dateDisplay} from ${content.startTime} to ${content.endTime} has been approved.`
             });
             break;
@@ -124,7 +141,7 @@ export async function startNotificationConsumer() {
           case 'BOOKING_REJECTED':
             notifications.push({
               userEmail: content.userEmail,
-              title: 'Booking Rejected',
+              title: `[L=${currentLamport}] Booking Rejected`,
               message: `Your booking request for ${resourceId} on ${dateDisplay} was rejected. Reason: ${content.rejectionReason || 'Rejected'}`
             });
             break;
@@ -132,7 +149,7 @@ export async function startNotificationConsumer() {
           case 'BOOKING_CANCELLED':
             notifications.push({
               userEmail: content.userEmail,
-              title: 'Booking Cancelled',
+              title: `[L=${currentLamport}] Booking Cancelled`,
               message: `Booking for ${resourceId} on ${dateDisplay} was cancelled.`
             });
             break;

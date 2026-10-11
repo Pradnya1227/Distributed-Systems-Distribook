@@ -13,8 +13,9 @@ if ($containers) {
 }
 
 # Helper to perform a simple HTTP GET and report status
-function Test-Endpoint($url, $name) {
-    $hdr = @{ "X-User-Email" = "pradnya.wakode23@pccoepune.org" }
+# Helper to perform a simple HTTP GET and report status
+function Test-Endpoint($url, $name, $auth = $true) {
+    $hdr = if ($auth) { @{ "X-User-Email" = "pradnya.wakode23@pccoepune.org" } } else { @{} }
     try {
         $resp = Invoke-WebRequest -Uri $url -Headers $hdr -UseBasicParsing -Method GET -TimeoutSec 5
         if ($resp.StatusCode -eq 200) {
@@ -27,20 +28,23 @@ function Test-Endpoint($url, $name) {
     }
 }
 
-# 2. Backend health checks (or simple endpoints)
-Write-Host "\n=== Backend API checks ==="
-# Resource Service – list resources (auth header needed)
-Test-Endpoint "http://localhost:3001/resources" "Resource Service"
-# Timetable Service – list timetables (auth header needed)
-Test-Endpoint "http://localhost:3002/timetables" "Timetable Service"
-# Booking Service – list bookings (auth header needed)
-Test-Endpoint "http://localhost:3003/bookings" "Booking Service"
-# Notification Service – list notifications for known user (auth header needed)
-Test-Endpoint "http://localhost:3004/notifications/user/pradnya.wakode23@pccoepune.org" "Notification Service"
+# 2. Public Health Endpoints (Beacon / Monitoring - Unauthenticated)
+Write-Host "\n=== Microservices Public Health Checks (/health) ==="
+Test-Endpoint "http://localhost:3001/health" "Resource Service Health" $false
+Test-Endpoint "http://localhost:3002/health" "Timetable Service Health" $false
+Test-Endpoint "http://localhost:3003/health" "Booking Service Health" $false
+Test-Endpoint "http://localhost:3004/health" "Notification Service Health" $false
+
+# 3. Authenticated Business API checks
+Write-Host "\n=== Authenticated Business API checks ==="
+Test-Endpoint "http://localhost:3001/resources" "Resource Service API"
+Test-Endpoint "http://localhost:3002/timetables" "Timetable Service API"
+Test-Endpoint "http://localhost:3003/bookings" "Booking Service API"
+Test-Endpoint "http://localhost:3004/notifications/user/pradnya.wakode23@pccoepune.org" "Notification Service API"
 
 # 3. PostgreSQL sanity checks
 Write-Host "\n=== PostgreSQL checks ==="
-$psqlOutput = docker exec distrbook-postgres psql -U postgres -d distribook -c 'SET search_path TO resource; SELECT COUNT(*) AS resource_count FROM "Resource";'
+$psqlOutput = docker exec distrbook-postgres psql -U postgres -d distribook --% -c "SELECT COUNT(*) AS resource_count FROM resource.\"Resource\";"
 Write-Host $psqlOutput
 
 # 4. Start the frontend (install deps if missing)

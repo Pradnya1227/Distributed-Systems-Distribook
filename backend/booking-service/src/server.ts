@@ -83,6 +83,16 @@ async function fetchTimetableEntries(userEmail: string) {
   }
 }
 
+// Public Health Endpoint (Beacon / Monitoring)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'UP',
+    service: 'booking-service',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.use(authMiddleware);
 
 // GET /bookings: Fetch list of bookings

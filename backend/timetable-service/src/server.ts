@@ -62,6 +62,16 @@ async function autoSeed() {
   }
 }
 
+// Public Health Endpoint (Beacon / Monitoring)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'UP',
+    service: 'timetable-service',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Global Auth Middleware
 app.use(authMiddleware);
 

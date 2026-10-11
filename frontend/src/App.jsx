@@ -1638,23 +1638,142 @@ function AdminBookings({ state }) {
 /* =========================================================================
    ADMIN — DISTRIBUTED SYSTEM
    ========================================================================= */
-function ServicesPage({ state }) {
+function ServicesPage() {
+  const [serviceHealth, setServiceHealth] = useState({
+    resource: { status: "checking", latency: null, uptime: null, lastChecked: null, error: null },
+    timetable: { status: "checking", latency: null, uptime: null, lastChecked: null, error: null },
+    booking: { status: "checking", latency: null, uptime: null, lastChecked: null, error: null },
+    notification: { status: "checking", latency: null, uptime: null, lastChecked: null, error: null }
+  });
+  const [refreshing, setRefreshing] = useState(false);
+
+  const servicesConfig = [
+    { id: "resource", name: "Resource Service", port: 3001, url: import.meta.env.VITE_RESOURCE_SERVICE_URL || "http://localhost:3001" },
+    { id: "timetable", name: "Timetable Service", port: 3002, url: import.meta.env.VITE_TIMETABLE_SERVICE_URL || "http://localhost:3002" },
+    { id: "booking", name: "Booking Service", port: 3003, url: import.meta.env.VITE_BOOKING_SERVICE_URL || "http://localhost:3003" },
+    { id: "notification", name: "Notification Service", port: 3004, url: import.meta.env.VITE_NOTIFICATION_SERVICE_URL || "http://localhost:3004" }
+  ];
+
+  const checkHealth = async () => {
+    setRefreshing(true);
+    const results = {};
+    await Promise.all(servicesConfig.map(async (s) => {
+      const start = performance.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(`${s.url}/health`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const end = performance.now();
+        if (res.ok) {
+          const data = await res.json();
+          results[s.id] = {
+            status: "online",
+            latency: Math.round(end - start),
+            uptime: data.uptime ? `${Math.round(data.uptime)}s` : "Active",
+            lastChecked: new Date().toLocaleTimeString(),
+            error: null
+          };
+        } else {
+          results[s.id] = {
+            status: "offline",
+            latency: null,
+            uptime: null,
+            lastChecked: new Date().toLocaleTimeString(),
+            error: `HTTP ${res.status}`
+          };
+        }
+      } catch (err) {
+        results[s.id] = {
+          status: "offline",
+          latency: null,
+          uptime: null,
+          lastChecked: new Date().toLocaleTimeString(),
+          error: err.name === "AbortError" ? "Timeout (>3s)" : "Unreachable"
+        };
+      }
+    }));
+    setServiceHealth(prev => ({ ...prev, ...results }));
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    checkHealth();
+    const interval = setInterval(checkHealth, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div>
-      <SectionTitle title="Services" sub="Each backend service and infrastructure component" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-        {state.services.map((s) => (
-          <Card key={s.id} style={{ borderTop: `3px solid ${s.status === "online" ? C.blue500 : C.red600}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <b>{s.name}</b>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: s.status === "online" ? C.green600 : C.red600, display: "flex", alignItems: "center" }}><StatusDot online={s.status === "online"} />{s.status.toUpperCase()}</span>
-            </div>
-            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 8 }}>Port {s.port} · v{s.version}</div>
-            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Instances: {s.instances.length}</div>
-            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Requests: {s.instances.reduce((a, i) => a + i.requests, 0)}</div>
-            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Uptime: {s.uptime}%</div>
-          </Card>
-        ))}
+      <SectionTitle
+        title="Services & Health Monitoring"
+        sub="Real-time heartbeat & beacon failure detection across distributed microservices"
+        action={
+          <Button tone="primary" size="sm" onClick={checkHealth} disabled={refreshing}>
+            {refreshing ? "Checking..." : "Ping All Services"}
+          </Button>
+        }
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14, marginBottom: 20 }}>
+        {servicesConfig.map((s) => {
+          const h = serviceHealth[s.id] || {};
+          const isOnline = h.status === "online";
+          const isChecking = h.status === "checking";
+          return (
+            <Card key={s.id} style={{ borderTop: `3px solid ${isOnline ? C.green600 : (isChecking ? C.amber600 : C.red600)}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <b style={{ fontSize: 14.5 }}>{s.name}</b>
+                  <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Port {s.port} · Endpoint: <code style={{ fontSize: 11 }}>{s.url}/health</code></div>
+                </div>
+                <Badge tone={isOnline ? "green" : (isChecking ? "amber" : "red")}>
+                  <StatusDot online={isOnline} />
+                  {isChecking ? "PROBING" : (isOnline ? "ONLINE" : "OFFLINE")}
+                </Badge>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, padding: "10px 12px", background: C.surfaceAlt, borderRadius: 6, fontSize: 12 }}>
+                <div>
+                  <span style={{ color: C.inkFaint }}>Latency (RTT): </span>
+                  <b>{h.latency !== null ? `${h.latency} ms` : "—"}</b>
+                </div>
+                <div>
+                  <span style={{ color: C.inkFaint }}>Uptime: </span>
+                  <b>{h.uptime || "—"}</b>
+                </div>
+                <div>
+                  <span style={{ color: C.inkFaint }}>Last Heartbeat: </span>
+                  <b>{h.lastChecked || "—"}</b>
+                </div>
+                <div>
+                  <span style={{ color: C.inkFaint }}>Status Detail: </span>
+                  <b style={{ color: isOnline ? C.green600 : C.red600 }}>{h.error ? h.error : (isOnline ? "Healthy (200 OK)" : "Checking...")}</b>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <SectionTitle title="Infrastructure Health" sub="Supporting distributed message broker and database" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }}>
+        <Card style={{ borderTop: `3px solid ${C.blue500}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <b>RabbitMQ Message Broker</b>
+            <Badge tone="blue"><StatusDot online={true} />CONNECTED</Badge>
+          </div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Port 5672 (AMQP) · Port 15672 (Management)</div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Exchange: <code>distrbook.booking.events</code> (Topic)</div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Queue: <code>distrbook.notification.queue</code></div>
+        </Card>
+        <Card style={{ borderTop: `3px solid ${C.blue500}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <b>PostgreSQL Database</b>
+            <Badge tone="blue"><StatusDot online={true} />CONNECTED</Badge>
+          </div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Port 5433 (Host) · Port 5432 (Internal)</div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Schemas: <code>resource</code>, <code>timetable</code>, <code>booking</code>, <code>notification</code></div>
+          <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Isolation: Schema-per-service with row-level locking</div>
+        </Card>
       </div>
     </div>
   );

@@ -17,6 +17,16 @@ app.use(express.json());
 // Start consuming events
 startNotificationConsumer();
 
+// Public Health Endpoint (Beacon / Monitoring)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'UP',
+    service: 'notification-service',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.use(authMiddleware);
 
 // GET /notifications/user/:userId: Fetch user notifications

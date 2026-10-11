@@ -160,7 +160,7 @@ function checkAvailability(state, resourceId, date, start, end, capacityNeeded) 
   const rs = toMin(start), re = toMin(end);
   const day = dayOf(date);
   const tt = state.timetable[resourceId] || [];
-  for (const e of tt) if (e.day === day && overlaps(rs, re, toMin(e.start), toMin(e.end)))
+  for (const e of tt) if ((e.day === day || e.day?.toLowerCase() === day.toLowerCase()) && overlaps(rs, re, toMin(e.start), toMin(e.end)))
     return { available: false, reason: `Occupied by timetable (${e.subject})` };
   const bk = state.bookings.find((b) => {
     if (b.resourceId !== resourceId) return false;
@@ -646,10 +646,14 @@ export default function DistriBookApp() {
           if (!timetableMap[entry.resourceId]) {
             timetableMap[entry.resourceId] = [];
           }
+          const dayFormatted = entry.day || (entry.dayOfWeek ? entry.dayOfWeek.charAt(0).toUpperCase() + entry.dayOfWeek.slice(1).toLowerCase() : "");
           timetableMap[entry.resourceId].push({
-            day: entry.day,
-            start: entry.start,
-            end: entry.end,
+            day: dayFormatted,
+            dayOfWeek: entry.dayOfWeek || entry.day,
+            start: entry.start || entry.startTime,
+            end: entry.end || entry.endTime,
+            startTime: entry.startTime || entry.start,
+            endTime: entry.endTime || entry.end,
             subject: entry.subject,
             department: entry.department
           });
@@ -1426,10 +1430,14 @@ function TimetableAdmin({ state, dispatch }) {
           if (!timetableMap[entry.resourceId]) {
             timetableMap[entry.resourceId] = [];
           }
+          const dayFormatted = entry.day || (entry.dayOfWeek ? entry.dayOfWeek.charAt(0).toUpperCase() + entry.dayOfWeek.slice(1).toLowerCase() : "");
           timetableMap[entry.resourceId].push({
-            day: entry.day,
-            start: entry.start,
-            end: entry.end,
+            day: dayFormatted,
+            dayOfWeek: entry.dayOfWeek || entry.day,
+            start: entry.start || entry.startTime,
+            end: entry.end || entry.endTime,
+            startTime: entry.startTime || entry.start,
+            endTime: entry.endTime || entry.end,
             subject: entry.subject,
             department: entry.department
           });

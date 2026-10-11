@@ -9,7 +9,7 @@ async function runConcurrencyTest() {
   console.log('==================================================\n');
 
   const resourceId = 'COMP-LAB-204';
-  const date = '2026-09-02';
+  const date = '2026-11-' + String(Math.floor(Math.random() * 19) + 10);
   const startTime = '14:00';
   const endTime = '15:00';
 

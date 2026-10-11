@@ -109,8 +109,8 @@ async function runTests() {
       body: JSON.stringify({
         resourceId: 'COMP-LAB-203',
         date,
-        startTime: '10:00',
-        endTime: '12:00',
+        startTime: '16:00',
+        endTime: '18:00',
         purpose: 'E2E Testing Slot 1'
       })
     });
@@ -127,8 +127,8 @@ async function runTests() {
       body: JSON.stringify({
         resourceId: 'COMP-LAB-203',
         date,
-        startTime: '11:00',
-        endTime: '13:00',
+        startTime: '17:00',
+        endTime: '19:00',
         purpose: 'E2E Conflicting Slot'
       })
     });

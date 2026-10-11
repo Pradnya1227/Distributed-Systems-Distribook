@@ -55,7 +55,7 @@ services:
     build: ./backend/booking-service
     container_name: distrbook-booking-service
     environment:
-      DATABASE_URL: "postgresql://postgres:pradnya@2712@postgres:5432/distribook?schema=booking"
+      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=booking"
       RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       RESOURCE_SERVICE_URL: "http://resource-service:3001"
       TIMETABLE_SERVICE_URL: "http://timetable-service:3002"
@@ -74,7 +74,7 @@ services:
     build: ./backend/notification-service
     container_name: distrbook-notification-service
     environment:
-      DATABASE_URL: "postgresql://postgres:pradnya@2712@postgres:5432/distribook?schema=notification"
+      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=notification"
       RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       ALLOWED_ORIGINS: "http://localhost:5173"
       PORT: 3004

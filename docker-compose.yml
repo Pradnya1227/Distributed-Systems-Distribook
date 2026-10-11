@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: distrbook-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pradnya@2712
+      POSTGRES_DB: distribook
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: distrbook-rabbitmq
+    hostname: distrbook-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  resource-service:
+    build: ./backend/resource-service
+    container_name: distrbook-resource-service
+    environment:
+      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=resource"
+      ALLOWED_ORIGINS: "http://localhost:5173"
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  timetable-service:
+    build: ./backend/timetable-service
+    container_name: distrbook-timetable-service
+    environment:
+      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=timetable"
+      ALLOWED_ORIGINS: "http://localhost:5173"
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  booking-service:
+    build: ./backend/booking-service
+    container_name: distrbook-booking-service
+    environment:
+      DATABASE_URL: "postgresql://postgres:pradnya@2712@postgres:5432/distribook?schema=booking"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      RESOURCE_SERVICE_URL: "http://resource-service:3001"
+      TIMETABLE_SERVICE_URL: "http://timetable-service:3002"
+      ALLOWED_ORIGINS: "http://localhost:5173"
+      PORT: 3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - resource-service
+      - timetable-service
+    restart: unless-stopped
+
+  notification-service:
+    build: ./backend/notification-service
+    container_name: distrbook-notification-service
+    environment:
+      DATABASE_URL: "postgresql://postgres:pradnya@2712@postgres:5432/distribook?schema=notification"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      ALLOWED_ORIGINS: "http://localhost:5173"
+      PORT: 3004
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - booking-service
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  rabbitmq_data:

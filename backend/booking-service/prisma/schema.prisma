@@ -1,0 +1,73 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Booking {
+  id                   String    @id @default(uuid())
+  resourceId           String
+  userId               String
+  userEmail            String
+  userName             String
+  date                 String
+  startDate            String?
+  endDate              String?
+  startTime            String
+  endTime              String
+  participants         Int       @default(1)
+  purpose              String
+  eventName            String?
+  facultyEmail         String?
+  status               String    @default("pending")
+  facultyApproved      Boolean   @default(false)
+  coordinatorApproved  Boolean   @default(false)
+  labAssistantApproved Boolean   @default(false)
+  rejectionReason      String?
+  cancelledBy          String?
+  cancelledAt          DateTime?
+  cancellationReason   String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model BookingLock {
+  resourceId String   @id
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model MaintenanceBlock {
+  id         String   @id @default(uuid())
+  resourceId String
+  startDate  String
+  endDate    String
+  startTime  String
+  endTime    String
+  reason     String
+  createdBy  String
+  createdAt  DateTime @default(now())
+}
+
+model BookingHistory {
+  id             String   @id @default(uuid())
+  bookingId      String
+  action         String
+  actor          String
+  actorRole      String
+  timestamp      DateTime @default(now())
+  previousStatus String?
+  newStatus      String?
+  reason         String?
+}
+
+model User {
+  email     String   @id
+  name      String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

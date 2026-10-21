@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   postgres:
@@ -6,11 +5,7 @@ services:
     container_name: distrbook-postgres
     environment:
       POSTGRES_USER: postgres
-<<<<<<< HEAD
-      POSTGRES_PASSWORD: pradnya@2712
-=======
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
->>>>>>> origin/main
       POSTGRES_DB: distribook
     ports:
       - "5433:5432"
@@ -33,11 +28,7 @@ services:
     build: ./backend/resource-service
     container_name: distrbook-resource-service
     environment:
-<<<<<<< HEAD
-      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=resource"
-=======
-      DATABASE_URL: ${DATABASE_URL_RESOURCE}      
->>>>>>> origin/main
+      DATABASE_URL: ${DATABASE_URL_RESOURCE}
       ALLOWED_ORIGINS: "http://localhost:5173"
       PORT: 3001
     ports:
@@ -50,11 +41,7 @@ services:
     build: ./backend/timetable-service
     container_name: distrbook-timetable-service
     environment:
-<<<<<<< HEAD
-      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=timetable"
-=======
       DATABASE_URL: ${DATABASE_URL_TIMETABLE}
->>>>>>> origin/main
       ALLOWED_ORIGINS: "http://localhost:5173"
       PORT: 3002
     ports:
@@ -67,11 +54,7 @@ services:
     build: ./backend/booking-service
     container_name: distrbook-booking-service
     environment:
-<<<<<<< HEAD
-      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=booking"
-=======
       DATABASE_URL: ${DATABASE_URL_BOOKING}
->>>>>>> origin/main
       RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       RESOURCE_SERVICE_URL: "http://resource-service:3001"
       TIMETABLE_SERVICE_URL: "http://timetable-service:3002"
@@ -90,11 +73,7 @@ services:
     build: ./backend/notification-service
     container_name: distrbook-notification-service
     environment:
-<<<<<<< HEAD
-      DATABASE_URL: "postgresql://postgres:pradnya%402712@postgres:5432/distribook?schema=notification"
-=======
       DATABASE_URL: ${DATABASE_URL_NOTIFICATION}
->>>>>>> origin/main
       RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
       ALLOWED_ORIGINS: "http://localhost:5173"
       PORT: 3004

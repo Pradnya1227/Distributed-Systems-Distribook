@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DistriBook — System Explanation</title>
+<style>
+  :root{
+    --bg: #0a1220;
+    --bg-panel: #0f1b2e;
+    --bg-panel-2: #122238;
+    --grid: rgba(94,164,255,0.07);
+    --grid-strong: rgba(94,164,255,0.14);
+    --ink: #e7eefb;
+    --ink-dim: #93a7c2;
+    --ink-faint: #5c7290;
+    --blue: #5ea4ff;
+    --blue-soft: #2c6fd6;
+    --teal: #4fd6c4;
+    --amber: #f0b429;
+    --line: #1e3350;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  }
+  @font-face{font-family:'IBM Plex Mono';src:local('IBM Plex Mono');}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/48px 48px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/48px 48px,
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    font-size:16px;
+  }
+  a{color:var(--blue);}
+
+  /* ===== Layout ===== */
+  .shell{ display:grid; grid-template-columns: 280px 1fr; max-width:1400px; margin:0 auto; }
+  @media (max-width: 900px){ .shell{ grid-template-columns: 1fr; } .sidebar{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line);} }
+
+  .sidebar{
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+    border-right:1px solid var(--line);
+    padding:28px 20px 60px;
+    background:linear-gradient(180deg, rgba(15,27,46,0.7), rgba(10,18,32,0.4));
+    backdrop-filter: blur(6px);
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px; margin-bottom:6px;
+  }
+  .brand-mark{
+    width:34px;height:34px;border:1.5px solid var(--blue);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono); color:var(--blue); font-size:13px; font-weight:700;
+    position:relative;
+  }
+  .brand-mark::before, .brand-mark::after{
+    content:''; position:absolute; width:6px; height:6px; border:1px solid var(--teal);
+  }
+  .brand-mark::before{ top:-3px; left:-3px; border-right:none; border-bottom:none; }
+  .brand-mark::after{ bottom:-3px; right:-3px; border-left:none; border-top:none; }
+  .brand-name{ font-family:var(--mono); font-size:15px; letter-spacing:0.02em; font-weight:600; }
+  .brand-sub{ font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); letter-spacing:0.12em; text-transform:uppercase; margin:2px 0 26px 0;}
+
+  .toc-group{ margin-bottom:4px; }
+  .toc-group summary{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--ink-faint); padding:10px 0 6px; cursor:default; list-style:none;
+  }
+  nav a{
+    display:flex; gap:10px; align-items:baseline;
+    text-decoration:none; color:var(--ink-dim); font-size:13.5px;
+    padding:6px 8px; border-radius:3px; border-left:2px solid transparent;
+  }
+  nav a:hover{ color:var(--ink); background:rgba(94,164,255,0.06); border-left-color:var(--blue-soft); }
+  nav a .num{ font-family:var(--mono); color:var(--ink-faint); font-size:11px; min-width:20px; }
+  nav a.active{ color:var(--teal); border-left-color:var(--teal); background:rgba(79,214,196,0.06);}
+
+  main{ padding:64px 56px 120px; max-width:920px; }
+  @media (max-width:900px){ main{ padding:36px 20px 100px; } }
+
+  /* ===== Hero ===== */
+  .hero{
+    border:1px solid var(--line);
+    background:linear-gradient(160deg, var(--bg-panel), rgba(15,27,46,0.3));
+    border-radius:6px;
+    padding:44px 40px;
+    margin-bottom:64px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:'DWG · 001';
+    position:absolute; top:16px; right:20px;
+    font-family:var(--mono); font-size:11px; color:var(--ink-faint); letter-spacing:0.1em;
+  }
+  .hero .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--teal); margin-bottom:16px;
+  }
+  .hero h1{
+    font-size:42px; margin:0 0 14px; line-height:1.12; letter-spacing:-0.01em;
+    font-weight:700;
+  }
+  .hero h1 span{ color:var(--blue); }
+  .hero p{ color:var(--ink-dim); font-size:16.5px; max-width:62ch; margin:0; }
+  .hero .tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; }
+  .tag{
+    font-family:var(--mono); font-size:11px; border:1px solid var(--line);
+    padding:5px 10px; border-radius:20px; color:var(--ink-dim);
+  }
+
+  /* ===== Sections ===== */
+  section{ margin-bottom:76px; scroll-margin-top:24px; }
+  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:6px; border-bottom:1px solid var(--line); padding-bottom:14px;}
+  .sec-num{ font-family:var(--mono); color:var(--blue); font-size:14px; }
+  section h2{ font-size:26px; margin:0; letter-spacing:-0.01em; }
+  .sec-body{ margin-top:24px; }
+  h3{ font-size:18px; color:var(--ink); margin:32px 0 10px; }
+  h3 .glyph{ color:var(--teal); margin-right:8px; }
+  p{ color:#c9d6ea; }
+  .lede{ color:var(--ink-dim); font-size:15px; }
+
+  /* ===== Diagram blocks ===== */
+  .diagram{
+    font-family:var(--mono); font-size:12.6px; line-height:1.55; color:var(--teal);
+    background: repeating-linear-gradient(var(--bg-panel-2), var(--bg-panel-2)),
+                linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0/16px 16px,
+                linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0/16px 16px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:22px 24px;
+    overflow-x:auto;
+    white-space:pre;
+    margin:20px 0;
+    position:relative;
+  }
+  .diagram::before{
+    content: attr(data-label);
+    position:absolute; top:-10px; left:14px;
+    background:var(--bg); padding:0 8px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.1em; color:var(--ink-faint); text-transform:uppercase;
+  }
+
+  /* ===== Tables ===== */
+  table{ width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--teal); border-bottom:1px solid var(--blue-soft); padding:10px 14px; background:rgba(94,164,255,0.05);
+  }
+  tbody td{ padding:11px 14px; border-bottom:1px solid var(--line); color:#c9d6ea; vertical-align:top; }
+  tbody tr:hover td{ background:rgba(94,164,255,0.04); }
+  td:first-child, th:first-child{ color:var(--ink); font-weight:600; }
+
+  /* ===== Lists ===== */
+  ul, ol{ color:#c9d6ea; padding-left:22px; }
+  li{ margin-bottom:6px; }
+  ul.plain{ list-style:none; padding-left:0; }
+  ul.plain li{ padding-left:22px; position:relative; }
+  ul.plain li::before{ content:'▸'; position:absolute; left:0; color:var(--blue); }
+
+  /* ===== Callouts ===== */
+  .callout{
+    border-left:3px solid var(--blue); background:rgba(94,164,255,0.06);
+    padding:16px 20px; border-radius:0 4px 4px 0; margin:20px 0; color:var(--ink-dim); font-size:14.5px;
+  }
+  .callout b{ color:var(--ink); }
+  .talking-point{
+    border-left:3px solid var(--teal); background:rgba(79,214,196,0.06);
+    padding:16px 20px; border-radius:0 4px 4px 0; margin:20px 0;
+  }
+  .talking-point .lbl{ font-family:var(--mono); font-size:10.5px; color:var(--teal); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; }
+  .talking-point p{ margin:0; font-style:italic; color:#dbe6f5; }
+
+  /* ===== Q&A ===== */
+  .qa{ border:1px solid var(--line); border-radius:5px; margin-bottom:12px; overflow:hidden; background:var(--bg-panel);}
+  .qa .q{
+    display:flex; gap:12px; padding:15px 18px; font-weight:600; color:var(--ink); font-size:14.5px;
+  }
+  .qa .q .qmark{ font-family:var(--mono); color:var(--amber); flex-shrink:0; }
+  .qa .a{ padding:0 18px 16px 46px; color:var(--ink-dim); font-size:14.5px; }
+
+  /* ===== Pills / status grid for services ===== */
+  .service-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:22px 0;}
+  .service-card{
+    border:1px solid var(--line); border-radius:5px; padding:16px 18px; background:var(--bg-panel);
+    position:relative;
+  }
+  .service-card .port{
+    font-family:var(--mono); font-size:11px; color:var(--blue); position:absolute; top:14px; right:16px;
+  }
+  .service-card h4{ margin:0 0 6px; font-size:15px; }
+  .service-card p{ margin:0; font-size:13px; color:var(--ink-dim); }
+
+  /* footer */
+  footer{
+    border-top:1px solid var(--line); margin-top:60px; padding-top:28px;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+
+  code{ font-family:var(--mono); background:rgba(94,164,255,0.08); padding:2px 6px; border-radius:3px; font-size:0.88em; color:var(--teal);}
+  pre.code-block{
+    font-family:var(--mono); font-size:13px; background:var(--bg-panel-2); border:1px solid var(--line);
+    border-radius:4px; padding:16px 18px; overflow-x:auto; color:#d5e2f2; margin:18px 0;
+  }
+  .signature{
+    margin-top:80px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    padding:30px 0; border-top:1px dashed var(--line);
+  }
+  ::selection{ background:rgba(94,164,255,0.3); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">DB</div>
+      <div class="brand-name">DistriBook</div>
+    </div>
+    <div class="brand-sub">System explanation sheet</div>
+
+    <nav id="toc">
+      <a href="#s1"><span class="num">01</span> What is DistriBook</a>
+      <a href="#s2"><span class="num">02</span> Why it exists</a>
+      <a href="#s3"><span class="num">03</span> Architecture</a>
+      <a href="#s4"><span class="num">04</span> Services at a glance</a>
+      <a href="#s5"><span class="num">05</span> Sync vs async</a>
+      <a href="#s6"><span class="num">06</span> Why microservices</a>
+      <a href="#s7"><span class="num">07</span> Service deep dive</a>
+      <a href="#s8"><span class="num">08</span> Booking workflow</a>
+      <a href="#s9"><span class="num">09</span> Race conditions</a>
+      <a href="#s10"><span class="num">10</span> Authorization</a>
+      <a href="#s11"><span class="num">11</span> PostgreSQL + Prisma</a>
+      <a href="#s12"><span class="num">12</span> Docker &amp; Compose</a>
+      <a href="#s13"><span class="num">13</span> Ports reference</a>
+      <a href="#s14"><span class="num">14</span> Tech stack</a>
+      <a href="#s15"><span class="num">15</span> Fault isolation &amp; scale</a>
+      <a href="#s16"><span class="num">16</span> DS concepts map</a>
+      <a href="#s17"><span class="num">17</span> 2-minute summary</a>
+      <a href="#s18"><span class="num">18</span> Viva Q&amp;A</a>
+      <a href="#s19"><span class="num">19</span> Team prep split</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <div class="eyebrow">Distributed Systems — Academic Project</div>
+      <h1>DistriBook<br><span>Distributed Resource Booking System</span></h1>
+      <p>A microservices-based booking platform for college resources — classrooms, labs, and halls — built to demonstrate distributed communication, concurrency, consistency, and fault isolation, not just CRUD.</p>
+      <div class="tags">
+        <span class="tag">Microservices</span>
+        <span class="tag">REST + RabbitMQ</span>
+        <span class="tag">PostgreSQL / Prisma</span>
+        <span class="tag">Docker Compose</span>
+        <span class="tag">React + Vite</span>
+      </div>
+    </div>
+
+    <!-- 1 -->
+    <section id="s1">
+      <div class="sec-head"><span class="sec-num">01</span><h2>What Is DistriBook?</h2></div>
+      <div class="sec-body">
+        <p>DistriBook is a <b>distributed resource booking system</b> built for a college environment, developed for the <b>Distributed Systems</b> course. It lets students, faculty, and administrators:</p>
+        <ul class="plain">
+          <li>View available classrooms, labs, and halls</li>
+          <li>Check resource availability for a given date/time</li>
+          <li>View timetable information</li>
+          <li>Book resources while preventing conflicts</li>
+          <li>Receive notifications about booking events</li>
+          <li>Operate under role-based permissions</li>
+        </ul>
+        <p>The key design decision: DistriBook is <b>not</b> one big application. The backend is split into independent <b>microservices</b>, each owning one responsibility.</p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Why This Project Exists</h2></div>
+      <div class="sec-body">
+        <p>Colleges share limited resources across many departments. If two people try to book the same room at the same time, a naive system could let both bookings succeed. The system therefore needs to handle:</p>
+        <ul class="plain">
+          <li>Resource management</li>
+          <li>Availability &amp; timetable conflict checks</li>
+          <li>Concurrent booking requests</li>
+          <li>Communication between independent components</li>
+          <li>Persistent storage, notifications, and role-based authorization</li>
+        </ul>
+        <p class="lede">These requirements are exactly what makes it a good vehicle for demonstrating <b>Distributed Systems</b> concepts.</p>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <div class="sec-head"><span class="sec-num">03</span><h2>System Architecture</h2></div>
+      <div class="sec-body">
+        <div class="diagram" data-label="Fig. 3.1 — Component map">                         ┌──────────────┐
+                         │     USER     │
+                         └──────┬───────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ React + Vite UI │
+                       │     :5173       │
+                       └────────┬────────┘
+                                │
+                    HTTP REST Communication
+                                │
+             ┌──────────────────┼──────────────────┐
+             │                  │                  │
+             ▼                  ▼                  ▼
+     ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+     │   Resource   │   │  Timetable   │   │   Booking    │
+     │   Service    │   │   Service    │   │   Service    │
+     │    :3001     │   │    :3002     │   │    :3003     │
+     └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
+            │                  │                  │
+            └──────────────────┼──────────────────┘
+                                │
+                                ▼
+                       ┌──────────────┐
+                       │  PostgreSQL  │
+                       │    :5433     │
+                       └──────────────┘
+                                │
+                          Booking Event
+                                │
+                                ▼
+                       ┌──────────────┐
+                       │  RabbitMQ    │
+                       │    :5672     │
+                       └──────┬───────┘
+                              │
+                              ▼
+                  ┌────────────────────┐
+                  │ Notification       │
+                  │ Service  :3004     │
+                  └────────────────────┘</div>
+        <div class="callout"><b>One-line summary:</b> DistriBook uses a microservices architecture where independent services communicate through REST and RabbitMQ, persist data in PostgreSQL, and run in Docker containers — giving a scalable, isolated, reproducible distributed system.</div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Backend Services at a Glance</h2></div>
+      <div class="sec-body">
+        <div class="service-grid">
+          <div class="service-card"><span class="port">:3001</span><h4>🏫 Resource Service</h4><p>Manages resources (rooms, labs, halls) and their metadata</p></div>
+          <div class="service-card"><span class="port">:3002</span><h4>📅 Timetable Service</h4><p>Manages academic timetable / scheduled classes</p></div>
+          <div class="service-card"><span class="port">:3003</span><h4>📚 Booking Service</h4><p>Handles booking creation and conflict detection</p></div>
+          <div class="service-card"><span class="port">:3004</span><h4>🔔 Notification Service</h4><p>Processes booking-related events asynchronously</p></div>
+          <div class="service-card"><span class="port">:5433</span><h4>🗄️ PostgreSQL</h4><p>Persistent database (host-mapped from container's 5432)</p></div>
+          <div class="service-card"><span class="port">:5672</span><h4>📨 RabbitMQ</h4><p>Message broker for async communication</p></div>
+          <div class="service-card"><span class="port">:15672</span><h4>🐰 RabbitMQ Mgmt UI</h4><p>Web dashboard for inspecting queues</p></div>
+          <div class="service-card"><span class="port">:5173</span><h4>⚛️ Frontend</h4><p>React + Vite user-facing web app</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Synchronous vs Asynchronous Communication</h2></div>
+      <div class="sec-body">
+        <p>DistriBook deliberately uses <b>both</b> communication styles, for different reasons.</p>
+        <h3><span class="glyph">▸</span>Synchronous (REST)</h3>
+        <div class="diagram" data-label="Fig. 5.1">Frontend ──► Resource Service
+Frontend ──► Timetable Service
+Frontend ──► Booking Service</div>
+        <p>Used when the caller needs an <b>immediate answer</b> — e.g. "is this room available right now?"</p>
+        <h3><span class="glyph">▸</span>Asynchronous (RabbitMQ)</h3>
+        <div class="diagram" data-label="Fig. 5.2">Booking Service ──(Booking Event)──► RabbitMQ ──► Notification Service</div>
+        <p>Used when the caller does <b>not</b> need to wait — e.g. sending a notification after a booking succeeds. The Booking Service publishes the event and moves on; the Notification Service consumes it independently.</p>
+        <div class="callout"><b>Why not make everything one or the other?</b> A user asking "is this room free?" needs an immediate response → REST. A notification doesn't need to block the booking response → RabbitMQ.</div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Why Microservices?</h2></div>
+      <div class="sec-body">
+        <h3><span class="glyph">▸</span>Monolithic approach (not used)</h3>
+        <div class="diagram" data-label="Fig. 6.1 — Rejected">              ONE BIG APPLICATION
+        ┌─────────────────────────────┐
+        │ Resources / Timetable /     │
+        │ Bookings / Notifications /  │
+        │ Auth — all in one process   │
+        └─────────────────────────────┘</div>
+        <h3><span class="glyph">▸</span>DistriBook's approach</h3>
+        <div class="diagram" data-label="Fig. 6.2 — Adopted">┌───────────┐  ┌────────────┐  ┌───────────┐  ┌──────────────┐
+│ Resource  │  │ Timetable  │  │ Booking   │  │ Notification │
+│ Service   │  │ Service    │  │ Service   │  │ Service      │
+└───────────┘  └────────────┘  └───────────┘  └──────────────┘</div>
+        <ol>
+          <li><b>Separation of concerns</b> — each service owns one job.</li>
+          <li><b>Fault isolation</b> — one service failing doesn't necessarily take down the rest.</li>
+          <li><b>Independent development</b> — teammates can work on different services in parallel.</li>
+          <li><b>Independent deployment</b> — services can be rebuilt/redeployed separately.</li>
+          <li><b>Independent scalability</b> — e.g. scale only the Booking Service under heavy load.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Deep Dive: What Each Service Does</h2></div>
+      <div class="sec-body">
+        <h3><span class="glyph">▸</span>Resource Service</h3>
+        <p>Manages bookable resources — ID, name, type, capacity, building, department, facilities, status (e.g. <code>6101CR</code> = Classroom, capacity 60, Active). Kept separate because resource management is its own business concern.</p>
+        <h3><span class="glyph">▸</span>Timetable Service</h3>
+        <p>Manages scheduled academic activities (e.g. a class in Room 6202CR from 10:00–11:00). The Booking Service consults this to reject bookings that overlap existing classes.</p>
+        <h3><span class="glyph">▸</span>Booking Service — the core business logic</h3>
+        <div class="diagram" data-label="Fig. 7.1 — Validation pipeline">Booking Request
+      │
+      ▼
+Is resource valid & active?
+      │
+      ▼
+Is capacity sufficient?
+      │
+      ▼
+Any timetable conflict?
+      │
+      ▼
+Any existing booking conflict?
+      │
+      ▼
+Create booking</div>
+        <p>If any check fails, the booking is rejected.</p>
+        <h3><span class="glyph">▸</span>Notification Service</h3>
+        <p>Consumes <code>BOOKING_CREATED</code> (and similar) events from RabbitMQ — deliberately decoupled so booking creation doesn't have to wait on notification logic.</p>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Complete Booking Workflow — Worked Example</h2></div>
+      <div class="sec-body">
+        <p class="lede">Scenario: A student wants to book Room <code>6204CR</code> on Monday, 2:00 PM – 3:00 PM.</p>
+        <ol>
+          <li>User selects the resource, date, and time on the React frontend (<code>:5173</code>).</li>
+          <li>Frontend sends the request to the Booking Service (<code>:3003</code>).</li>
+          <li>Booking Service verifies the resource is valid and active.</li>
+          <li>Booking Service checks the Timetable Service for conflicts.</li>
+          <li>Booking Service checks existing bookings for overlap.</li>
+          <li>Capacity and other validation rules are checked.</li>
+          <li>If everything passes, the booking is written to PostgreSQL.</li>
+          <li>Booking Service publishes a <code>BOOKING_CREATED</code> event to RabbitMQ.</li>
+          <li>Notification Service consumes the event from the queue.</li>
+          <li>Notification Service processes/generates the notification.</li>
+        </ol>
+        <p>One user action → coordinated work across multiple independent, distributed components.</p>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <div class="sec-head"><span class="sec-num">09</span><h2>Handling Concurrent Bookings — Race Conditions</h2></div>
+      <div class="sec-body">
+        <p>One of the most important Distributed Systems ideas in the project.</p>
+        <div class="diagram" data-label="Fig. 9.1 — The race">User A                         User B
+Check room                     Check room
+   │                               │
+   ▼                               ▼
+Available                      Available
+   │                               │
+   ▼                               ▼
+Create booking                 Create booking</div>
+        <p>If two users request the same room/time nearly simultaneously, a naive "check-then-create" flow can let <b>both</b> bookings succeed — a classic <b>race condition</b>.</p>
+        <p><b>Why it matters:</b> the system must guarantee <b>consistency</b> even under concurrent access, not just correctness for a single user acting alone.</p>
+        <p><b>How we verify it:</b> <code>backend/test_concurrency.js</code> fires overlapping booking requests and checks that the system does not allow conflicting bookings through.</p>
+        <div class="talking-point">
+          <div class="lbl">Talking point for viva</div>
+          <p>"Multiple clients can request the same resource at nearly the same time. Our booking logic and concurrency test are designed to detect and prevent this race condition, keeping the system consistent."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Authorization</h2></div>
+      <div class="sec-body">
+        <p>DistriBook supports different user roles (Student, Faculty, Admin) with different permissions. This is tested via <code>backend/test_extended_authorization.js</code>, which checks role-based access control across operations.</p>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <div class="sec-head"><span class="sec-num">11</span><h2>Data Layer: PostgreSQL + Prisma</h2></div>
+      <div class="sec-body">
+        <ul class="plain">
+          <li><b>PostgreSQL</b> provides persistent, relational storage — without it, bookings would vanish on every restart.</li>
+          <li><b>Prisma</b> is the ORM layer used from the Node.js/TypeScript services, giving type-safe queries, schema management, and migrations instead of hand-written SQL.</li>
+        </ul>
+        <p>Each service works against its own logical schema inside a shared PostgreSQL instance:</p>
+        <div class="diagram" data-label="Fig. 11.1 — Schema separation">PostgreSQL
+│
+├── resource schema
+├── timetable schema
+├── booking schema
+└── notification schema</div>
+        <div class="callout"><b>Why one PostgreSQL instance instead of fully separate databases?</b> For this academic implementation, one instance keeps operations simple, while separate schemas still preserve the microservices' logical data boundaries. In a larger production system, these could be split into fully independent databases.</div>
+        <div class="diagram" data-label="Fig. 11.2 — Access boundary">Frontend → Backend Service → Database</div>
+        <p>Keeping data access behind services preserves business rules — validation, conflict checks, authorization.</p>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section id="s12">
+      <div class="sec-head"><span class="sec-num">12</span><h2>Why Docker &amp; Docker Compose?</h2></div>
+      <div class="sec-body">
+        <p><b>Problem without Docker:</b> every teammate must manually install and configure Node.js, PostgreSQL, RabbitMQ, and keep versions in sync — a classic "works on my machine" situation.</p>
+        <p><b>Docker's solution:</b> each service (and PostgreSQL, RabbitMQ) runs in its own container with its dependencies bundled in.</p>
+        <div class="diagram" data-label="Fig. 12.1 — Containers">Docker
+│
+├── PostgreSQL Container
+├── RabbitMQ Container
+├── Resource Service Container
+├── Timetable Service Container
+├── Booking Service Container
+└── Notification Service Container</div>
+        <p><b>Docker Compose</b> (<code>docker-compose.yml</code>) defines all services, ports, environment variables, dependencies, and volumes in one file:</p>
+        <pre class="code-block">docker compose up --build   # first run / after code or Dockerfile changes
+docker compose up           # subsequent runs
+docker compose down         # stop everything</pre>
+        <p><b>Docker networking:</b> containers reach each other by service name instead of hardcoded IPs, e.g. <code>booking-service</code> can call <code>http://resource-service:3001</code> or <code>rabbitmq:5672</code> directly.</p>
+        <div class="callout"><b><code>depends_on</code> caveat:</b> it controls <i>startup order</i>, not <i>readiness</i> — a dependent service can still fail if it calls another before that service can accept requests. Robust services should handle retries/connection checks.</div>
+        <p><b>Persistence:</b> named Docker volumes (<code>pgdata</code>, <code>rabbitmq_data</code>) keep database and broker data intact even when containers are recreated.</p>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section id="s13">
+      <div class="sec-head"><span class="sec-num">13</span><h2>Port Reference &amp; Why They're Different</h2></div>
+      <div class="sec-body">
+        <table>
+          <thead><tr><th>Component</th><th>Host Port</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Resource Service</td><td>3001</td><td>—</td></tr>
+            <tr><td>Timetable Service</td><td>3002</td><td>—</td></tr>
+            <tr><td>Booking Service</td><td>3003</td><td>—</td></tr>
+            <tr><td>Notification Service</td><td>3004</td><td>—</td></tr>
+            <tr><td>PostgreSQL</td><td>5433</td><td>Mapped from container's default 5432, avoids clashing with a local PostgreSQL install</td></tr>
+            <tr><td>RabbitMQ</td><td>5672</td><td>Application/messaging traffic</td></tr>
+            <tr><td>RabbitMQ Mgmt UI</td><td>15672</td><td>Browser dashboard at <code>http://localhost:15672</code></td></tr>
+            <tr><td>Frontend</td><td>5173</td><td>Vite dev server (auto-shifts to 5174, etc. if busy)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section id="s14">
+      <div class="sec-head"><span class="sec-num">14</span><h2>Technology Stack Summary</h2></div>
+      <div class="sec-body">
+        <table>
+          <thead><tr><th>Layer</th><th>Technology</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Frontend</td><td>React</td><td>Build the user interface</td></tr>
+            <tr><td>Frontend</td><td>Vite</td><td>Fast dev server / build tooling</td></tr>
+            <tr><td>Backend runtime</td><td>Node.js</td><td>JavaScript runtime for services</td></tr>
+            <tr><td>Backend language</td><td>TypeScript</td><td>Type safety across services</td></tr>
+            <tr><td>Backend framework</td><td>Express</td><td>REST API server</td></tr>
+            <tr><td>Database</td><td>PostgreSQL</td><td>Persistent relational storage</td></tr>
+            <tr><td>ORM</td><td>Prisma</td><td>Type-safe DB access, migrations</td></tr>
+            <tr><td>Messaging</td><td>RabbitMQ</td><td>Asynchronous, event-driven communication</td></tr>
+            <tr><td>Containerization</td><td>Docker / Compose</td><td>Consistent, reproducible environments</td></tr>
+            <tr><td>Version control</td><td>Git / GitHub</td><td>Collaboration and history</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section id="s15">
+      <div class="sec-head"><span class="sec-num">15</span><h2>Fault Isolation &amp; Scalability</h2></div>
+      <div class="sec-body">
+        <p><b>Fault isolation:</b> because services are separate processes, a failure in one (e.g. Notification Service) doesn't automatically bring down the others. The actual blast radius depends on the dependency involved, but the architecture reduces it compared to a monolith.</p>
+        <p><b>Scalability:</b> if booking traffic spikes, only the Booking Service needs more instances:</p>
+        <div class="diagram" data-label="Fig. 15.1 — Independent scaling">              Booking Requests
+                     │
+             ┌───────┼───────┐
+             ▼       ▼       ▼
+          Booking  Booking  Booking
+          Instance Instance Instance
+             1        2        3</div>
+        <p>...while Resource Service and Timetable Service can remain at a single instance each.</p>
+      </div>
+    </section>
+
+    <!-- 16 -->
+    <section id="s16">
+      <div class="sec-head"><span class="sec-num">16</span><h2>Distributed Systems Concepts Demonstrated</h2></div>
+      <div class="sec-body">
+        <table>
+          <thead><tr><th>Concept</th><th>How DistriBook demonstrates it</th></tr></thead>
+          <tbody>
+            <tr><td>Distributed components</td><td>Multiple independent microservices</td></tr>
+            <tr><td>Network communication</td><td>REST APIs between frontend and services</td></tr>
+            <tr><td>Message passing</td><td>RabbitMQ between Booking and Notification services</td></tr>
+            <tr><td>Asynchronous comms</td><td>Booking events processed without blocking</td></tr>
+            <tr><td>Concurrency</td><td>Multiple users booking simultaneously</td></tr>
+            <tr><td>Race conditions</td><td>Concurrent booking requests for the same resource</td></tr>
+            <tr><td>Consistency</td><td>Conflict detection preventing double-booking</td></tr>
+            <tr><td>Fault isolation</td><td>Independent services/containers</td></tr>
+            <tr><td>Scalability</td><td>Services can be scaled independently</td></tr>
+            <tr><td>Persistence</td><td>PostgreSQL storage</td></tr>
+            <tr><td>Containerization</td><td>Docker packages each component</td></tr>
+            <tr><td>Service independence</td><td>Separate, individually deployable services</td></tr>
+            <tr><td>Authorization</td><td>Role-based access control</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 17 -->
+    <section id="s17">
+      <div class="sec-head"><span class="sec-num">17</span><h2>Two-Minute Spoken Summary</h2></div>
+      <div class="sec-body">
+        <div class="talking-point">
+          <div class="lbl">Say this in the viva</div>
+          <p>"Our project is DistriBook, a distributed resource booking system built for the Distributed Systems course. It lets students, faculty, and administrators view college resources, check availability, view timetables, and book classrooms, labs, or halls.<br><br>
+          The backend uses a microservices architecture with four independent services: Resource Service on port 3001, Timetable Service on 3002, Booking Service on 3003, and Notification Service on 3004. Services communicate over REST for synchronous operations and RabbitMQ for asynchronous, event-driven communication. PostgreSQL handles persistent storage via Prisma, and Docker Compose containerizes and runs everything consistently.<br><br>
+          When a user requests a booking, the Booking Service validates the resource, checks timetable and existing-booking conflicts, and — if everything passes — creates the booking and publishes an event to RabbitMQ, which the Notification Service consumes.<br><br>
+          The project demonstrates core Distributed Systems ideas: microservices, network and message-based communication, concurrency and race-condition handling, consistency, fault isolation, independent scalability, persistence, and containerization."</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 -->
+    <section id="s18">
+      <div class="sec-head"><span class="sec-num">18</span><h2>Likely Viva Questions &amp; Answers</h2></div>
+      <div class="sec-body">
+        <div class="qa"><div class="q"><span class="qmark">Q1</span>Why is this a Distributed Systems project?</div><div class="a">Because it consists of multiple independent services running as separate processes/containers that communicate over the network (REST) and via messaging (RabbitMQ), rather than one single process handling everything.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q2</span>Why microservices instead of a monolith?</div><div class="a">Separation of concerns, fault isolation, independent development/deployment, and independent scalability.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q3</span>Why RabbitMQ?</div><div class="a">To decouple the Booking Service from the Notification Service — the booking flow doesn't have to wait for notification processing to finish.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q4</span>Why PostgreSQL?</div><div class="a">Reliable, persistent relational storage for resources, bookings, and timetable data.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q5</span>Why Prisma?</div><div class="a">A type-safe ORM that integrates cleanly with TypeScript and simplifies migrations/queries versus raw SQL.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q6</span>Why Docker / Docker Compose?</div><div class="a">Consistent environments across teammates' machines, simplified setup, container-level isolation, and one command to bring up the whole backend.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q7</span>What happens if two users book the same room at the same time?</div><div class="a">A potential race condition — both might see the room as "available" before either booking is committed. The system's conflict-check logic and the concurrency test (<code>test_concurrency.js</code>) are designed to prevent both from succeeding.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q8</span>Why use both REST and RabbitMQ?</div><div class="a">REST for operations needing an immediate answer (e.g. availability checks); RabbitMQ for events that don't need to block the caller (e.g. notifications).</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q9</span>What happens if the Notification Service goes down?</div><div class="a">Because it's decoupled via the message queue, booking creation isn't directly blocked by it — actual message-delivery guarantees depend on the queue/consumer configuration.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q10</span>Can the Booking Service be scaled independently?</div><div class="a">Yes — since it's a separate service, more instances can be run behind a load balancer if demand increases, without touching the other services.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q11</span>Why one PostgreSQL instance if this is "microservices"?</div><div class="a">For this academic build, one instance keeps things manageable, but each service uses its own schema to preserve logical data separation — that boundary could be split into fully separate databases later.</div></div>
+        <div class="qa"><div class="q"><span class="qmark">Q12</span>What does <code>depends_on</code> actually guarantee in Docker Compose?</div><div class="a">Only container startup order — not that the dependency is fully ready to serve requests. Services should still handle connection retries.</div></div>
+      </div>
+    </section>
+
+    <!-- 19 -->
+    <section id="s19">
+      <div class="sec-head"><span class="sec-num">19</span><h2>Suggested Prep Split for the Team</h2></div>
+      <div class="sec-body">
+        <p>Give each teammate 2–3 of the following to "own" for the viva, while everyone memorizes the architecture diagram (§3) and the booking workflow (§8):</p>
+        <ul class="plain">
+          <li>Resource Service + Timetable Service</li>
+          <li>Booking Service + concurrency/conflict logic</li>
+          <li>Notification Service + RabbitMQ</li>
+          <li>PostgreSQL + Prisma + schema design</li>
+          <li>Docker + Docker Compose + networking</li>
+          <li>Frontend (React/Vite) + overall Distributed Systems concepts</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="signature">— DWG · DISTRIBOOK-EXPLAIN · REV 01 —</div>
+
+    <footer>
+      <span>DistriBook — Distributed Resource Booking System</span>
+      <span>Academic Project · Distributed Systems Course</span>
+    </footer>
+  </main>
+</div>
+
+<script>
+  // Active TOC highlighting on scroll
+  const links = Array.from(document.querySelectorAll('#toc a'));
+  const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+  function onScroll(){
+    let idx = 0;
+    const y = window.scrollY + 120;
+    sections.forEach((s,i)=>{ if(s && s.offsetTop <= y) idx = i; });
+    links.forEach(l=>l.classList.remove('active'));
+    if(links[idx]) links[idx].classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll);
+  onScroll();
+</script>
+</body>
+</html>

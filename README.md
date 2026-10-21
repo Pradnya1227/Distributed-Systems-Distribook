@@ -1,350 +1,160 @@
-# 🚀 DistriBook
+# DistriBook — Distributed Resource Booking System
 
-### Distributed Resource Booking System
+A microservices-based resource booking system developed. DistriBook helps students, faculty, and administrators explore college resources, check availability, view timetables, and manage bookings while detecting scheduling conflicts.
 
-A microservices-based distributed resource booking system developed for the **Distributed Systems** course.
+## 1. Features
 
-DistriBook allows **students, faculty, and administrators** to view resources, check availability, view timetables, and manage resource bookings while preventing scheduling conflicts.
+- **Resource Management:** View classrooms, laboratories, seminar halls, and other college resources.
+- **Timetable Integration:** Check scheduled classes before booking resources.
+- **Booking Management:** Create booking requests and detect overlapping bookings.
+- **Concurrency Handling:** Test simultaneous booking requests for the same resource and time slot.
+- **Notification Processing:** Process booking events asynchronously using RabbitMQ.
+- **Lamport Logical Clocks:** Attach logical timestamps to booking events and update clocks when notifications are processed.
+- **Health Monitoring:** Check backend service health and display service status in the frontend.
+- **Role-Based Authorization:** Apply role-based access checks to supported API operations.
+- **Persistent Storage:** Store application data in PostgreSQL.
+- **Containerization:** Run backend services and infrastructure using Docker Compose.
 
----
+## 2. System Architecture
 
-## ✨ Features
-
-- 🏫 **Resource Management**
-  - Manage classrooms, laboratories, halls, and other resources
-  - View resource capacity and facilities
-
-- 🔎 **Resource Availability**
-  - Check whether a resource is available for a specific date and time
-  - Detect conflicts with existing bookings and timetables
-
-- 📅 **Timetable Integration**
-  - Integrate timetable information with resource availability
-  - Prevent bookings during scheduled classes
-
-- 📚 **Resource Booking**
-  - Create and manage resource bookings
-  - Prevent overlapping bookings
-
-- 🔔 **Notification Service**
-  - Process booking-related events
-  - Uses asynchronous message-based communication
-
-- 📨 **RabbitMQ Messaging**
-  - Enables communication between distributed services
-  - Supports event-driven notification processing
-
-- 🗄️ **PostgreSQL Database**
-  - Provides persistent storage for distributed services
-  - Uses Prisma ORM
-
-- 🔐 **Role-Based Authorization**
-  - Supports different user roles
-  - Provides controlled access to system operations
-
-- 🐳 **Dockerized Backend**
-  - Each backend service runs in its own container
-  - Docker Compose manages the distributed environment
-
-- ⚛️ **React + Vite Frontend**
-  - Interactive web interface
-  - Communicates with backend microservices
-
----
-
-## 🏗️ System Architecture
-
-DistriBook follows a **microservices architecture**, where different services are responsible for different system functions.
+DistriBook uses a microservices architecture with four backend services.
 
 ```text
-                         ┌──────────────────────┐
-                         │    React + Vite      │
-                         │      Frontend        │
-                         │     Port 5173        │
-                         └──────────┬───────────┘
-                                    │
-              ┌─────────────────────┼─────────────────────┐
-              │                     │                     │
-              ▼                     ▼                     ▼
-      ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
-      │   Resource    │     │   Timetable   │     │    Booking    │
-      │    Service    │     │    Service    │     │    Service    │
-      │    :3001      │     │    :3002      │     │    :3003      │
-      └───────┬───────┘     └───────┬───────┘     └───────┬───────┘
-              │                     │                     │
-              └─────────────────────┼─────────────────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │      PostgreSQL      │
-                         │       :5433          │
-                         └──────────────────────┘
+                    React + Vite Frontend
+                       localhost:5173
+                              |
+             +----------------+----------------+
+             |                |                |
+             v                v                v
+       Resource Service  Timetable Service  Booking Service
+          :3001              :3002             :3003
+                                                  |
+                                     +------------+------------+
+                                     |                         |
+                                     v                         v
+                                PostgreSQL                 RabbitMQ
+                                     |                         |
+                                     |                         v
+                                     |                 Notification Service
+                                     |                        :3004
+                                     +-------------------------+
 
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │      RabbitMQ        │
-                         │ :5672 / :15672       │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │   Notification       │
-                         │      Service         │
-                         │       :3004          │
-                         └──────────────────────┘
+                 PostgreSQL host port: 5433
+                 RabbitMQ: 5672
+                 RabbitMQ Management UI: 15672
 ```
 
-### 🔄 Communication Model
-
-DistriBook uses two major communication approaches.
-
-#### Synchronous Communication
-
-```text
-Frontend
-   │
-   ├──► Resource Service
-   ├──► Timetable Service
-   └──► Booking Service
-```
-
-#### Asynchronous Communication
-
-```text
-Booking Service
-      │
-      │ Booking Event
-      ▼
-   RabbitMQ
-      │
-      ▼
-Notification Service
-```
-
-This demonstrates both direct service communication and message-based communication in a distributed system.
-
----
-
-## 🧩 Backend Services
+### 2.1 Backend Services
 
 | Service | Port | Responsibility |
 |---|---:|---|
-| 🏫 Resource Service | 3001 | Manages resources and resource information |
-| 📅 Timetable Service | 3002 | Manages timetable information |
-| 📚 Booking Service | 3003 | Handles resource booking operations |
-| 🔔 Notification Service | 3004 | Processes booking notifications |
-| 🗄️ PostgreSQL | 5433 | Persistent database |
-| 📨 RabbitMQ | 5672 | Message broker |
-| 🐰 RabbitMQ Management UI | 15672 | RabbitMQ administration interface |
-| ⚛️ Frontend | 5173 | React + Vite web application |
+| Resource Service | 3001 | Resource information and availability-related operations |
+| Timetable Service | 3002 | Timetable information |
+| Booking Service | 3003 | Booking operations and conflict checks |
+| Notification Service | 3004 | Asynchronous booking-event processing |
+| PostgreSQL | 5433 | Persistent data storage |
+| RabbitMQ | 5672 | Message broker |
+| RabbitMQ Management UI | 15672 | Message broker administration |
+| React + Vite | 5173 | Web interface |
 
----
+### 2.2 Communication Model
 
-## 🛠️ Technologies Used
+**Synchronous communication:** The frontend calls backend APIs. The Booking Service also communicates with the Resource and Timetable Services when required.
 
-### Frontend
+**Asynchronous communication:** The Booking Service publishes booking-related events through RabbitMQ. The Notification Service consumes these events and processes them asynchronously.
 
-- ⚛️ React
-- ⚡ Vite
-- JavaScript
-- CSS
+### 2.3 Lamport Logical Clocks
 
-### Backend
+DistriBook demonstrates logical clocks in the booking-event flow.
 
-- 🟢 Node.js
-- 🔷 TypeScript
-- 🚂 Express
+1. The Booking Service increments its logical clock when generating a booking event.
+2. The event carries its Lamport timestamp in the message payload and message headers.
+3. The Notification Service reads the timestamp and updates its logical clock.
+4. Processed notifications include the logical clock value for demonstration and verification.
+
+The `/lamport` endpoints on the Booking and Notification Services expose clock information for testing.
+
+**Limitation:** The logical clocks are maintained in memory and reset when the corresponding service restarts. They are not persistent clocks.
+
+## 3. Technologies Used
+
+**Frontend**
+- React
+- Vite
+- JavaScript and CSS
+
+**Backend**
+- Node.js
+- TypeScript
+- Express
 - Prisma ORM
 
-### Distributed Systems
+**Database and Messaging**
+- PostgreSQL
+- RabbitMQ
 
-- 🧩 Microservices Architecture
-- 📨 RabbitMQ
-- 🔄 Asynchronous Messaging
-- 🔗 Service-to-Service Communication
-- ⚡ Concurrent Request Handling
-
-### Database
-
-- 🐘 PostgreSQL
-
-### DevOps and Infrastructure
-
-- 🐳 Docker
-- 🐳 Docker Compose
+**Infrastructure and Tools**
+- Docker
+- Docker Compose
 - Git and GitHub
 
----
+## 4. Project Setup
 
-## 📁 Project Structure
+### 4.1 Prerequisites
 
-```text
-DistriBook/
-│
-├── backend/
-│   │
-│   ├── booking-service/
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma
-│   │   │   └── seed.ts
-│   │   ├── src/
-│   │   │   ├── messaging/
-│   │   │   │   └── rabbitmq.ts
-│   │   │   ├── middleware/
-│   │   │   │   └── auth.ts
-│   │   │   └── server.ts
-│   │   ├── Dockerfile
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   ├── notification-service/
-│   │   ├── prisma/
-│   │   │   └── schema.prisma
-│   │   ├── src/
-│   │   │   ├── consumers/
-│   │   │   │   └── bookingEvents.consumer.ts
-│   │   │   ├── middleware/
-│   │   │   │   └── auth.ts
-│   │   │   └── server.ts
-│   │   ├── Dockerfile
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   ├── resource-service/
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma
-│   │   │   └── seed.ts
-│   │   ├── src/
-│   │   │   ├── middleware/
-│   │   │   │   └── auth.ts
-│   │   │   └── server.ts
-│   │   ├── Dockerfile
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   ├── timetable-service/
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma
-│   │   │   └── seed.ts
-│   │   ├── src/
-│   │   │   ├── middleware/
-│   │   │   │   └── auth.ts
-│   │   │   └── server.ts
-│   │   ├── Dockerfile
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   ├── test_concurrency.js
-│   └── test_extended_authorization.js
-│
-├── frontend/
-│   ├── public/
-│   │   ├── favicon.svg
-│   │   └── icons.svg
-│   │
-│   ├── src/
-│   │   ├── assets/
-│   │   │   ├── hero.png
-│   │   │   ├── react.svg
-│   │   │   └── vite.svg
-│   │   ├── App.css
-│   │   ├── App.jsx
-│   │   ├── index.css
-│   │   └── main.jsx
-│   │
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── index.html
-│   ├── package.json
-│   ├── package-lock.json
-│   └── vite.config.js
-│
-├── BTech_Computer_Engineering_Timetable.xlsx
-├── Classrooms and labs.txt
-├── DistriBookApp.jsx
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-├── query_notifications.sh
-└── README.md
-```
+Install the following:
 
----
+- Git
+- Node.js and npm
+- Docker Desktop
 
-## 🚀 How to Run the Project
+Start Docker Desktop before running the backend.
 
-### Prerequisites
+### 4.2 Clone the Repository
 
-Install the following software:
-
-- 🟢 Node.js
-- 📦 npm
-- 🐳 Docker Desktop
-- 🔧 Git
-
-Make sure Docker Desktop is running before starting the backend.
-
-### Step 1 — Clone the Repository
-
-If you are setting up the project on another computer, clone the repository:
-
-```bash
+```powershell
 git clone https://github.com/Pradnya1227/Distributed-Systems-Distribook.git
-```
-
-Enter the project directory:
-
-```bash
 cd Distributed-Systems-Distribook
 ```
 
-If you are already working inside the project directory, skip this step.
+If the repository is already present on your computer, open PowerShell in the project directory instead.
 
-### Step 2 — Configure Backend Environment Variables
+### 4.3 Configure Environment Variables
 
-Create the root environment file from the example.
+Create a root `.env` file from the example:
 
-#### Windows Command Prompt
-
-```cmd
-copy .env.example .env
+```powershell
+Copy-Item .env.example .env
 ```
 
-#### PowerShell, macOS, or Linux
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and set your PostgreSQL password.
-
-Example:
+Open `.env` and replace `your_postgres_password` with a password of your choice. Use the same password in all four database connection URLs.
 
 ```env
 POSTGRES_PASSWORD=your_postgres_password
-```
 
-The database connection variables should use the same password.
-
-```env
 DATABASE_URL_RESOURCE=postgresql://postgres:your_postgres_password@postgres:5432/distribook?schema=resource
 DATABASE_URL_TIMETABLE=postgresql://postgres:your_postgres_password@postgres:5432/distribook?schema=timetable
 DATABASE_URL_BOOKING=postgresql://postgres:your_postgres_password@postgres:5432/distribook?schema=booking
 DATABASE_URL_NOTIFICATION=postgresql://postgres:your_postgres_password@postgres:5432/distribook?schema=notification
 ```
 
-> ⚠️ Never commit `.env` files containing real passwords or credentials.
+These values are an example. Use the same actual password in all five places.
 
-### Step 3 — Start the Backend
+If your password contains special characters, URL-encode those characters in the database connection URLs as required by PostgreSQL connection-string syntax.
 
-From the project root directory, run:
+Never commit the actual `.env` file or other credentials to GitHub.
 
-```bash
+**Configuration requirement:** The root `docker-compose.yml` must reference `${POSTGRES_PASSWORD}` and the corresponding `${DATABASE_URL_...}` variables. Resolve any leftover Git merge-conflict markers before starting Docker Compose.
+
+### 4.4 Start the Backend
+
+After resolving the Docker Compose configuration, run this command from the project root:
+
+```powershell
 docker compose up --build
 ```
 
-Docker Compose will start:
+Docker Compose builds the backend service images and starts the configured infrastructure and backend services:
 
 - PostgreSQL
 - RabbitMQ
@@ -353,424 +163,200 @@ Docker Compose will start:
 - Booking Service
 - Notification Service
 
-The first build may take some time because Docker needs to download dependencies and build the service images.
+The first build may take several minutes. Keep the terminal running while using the application.
 
-Keep this terminal running.
+### 4.5 Verify Backend Health
 
-### Step 4 — Verify Backend Services
+Open these URLs in your browser:
 
-| Component | Address |
+| Service | Health endpoint |
 |---|---|
-| Resource Service | http://localhost:3001 |
-| Timetable Service | http://localhost:3002 |
-| Booking Service | http://localhost:3003 |
-| Notification Service | http://localhost:3004 |
-| PostgreSQL | `localhost:5433` |
-| RabbitMQ | `localhost:5672` |
-| RabbitMQ Management UI | http://localhost:15672 |
+| Resource Service | `http://localhost:3001/health` |
+| Timetable Service | `http://localhost:3002/health` |
+| Booking Service | `http://localhost:3003/health` |
+| Notification Service | `http://localhost:3004/health` |
 
-To open the RabbitMQ Management UI, visit:
+A successful health endpoint should return an HTTP success response when the service is running.
 
-```text
-http://localhost:15672
-```
+RabbitMQ's management interface is available at:
 
-### Step 5 — Open a New Terminal
+`http://localhost:15672`
 
-Keep the Docker terminal running.
+The default RabbitMQ image credentials are typically `guest` / `guest` for local development. Do not use these defaults for a production deployment.
 
-Open another terminal and move into the frontend directory:
+### 4.6 Start the Frontend
 
-```bash
+Open a second PowerShell terminal:
+
+```powershell
 cd frontend
-```
-
-### Step 6 — Install Frontend Dependencies
-
-Run:
-
-```bash
 npm install
 ```
 
-This installs all frontend dependencies defined in `package.json`.
+If the frontend requires environment variables, inspect `frontend/.env.example` and create `frontend/.env` from that file, following its documented variable names.
 
-### Step 7 — Configure Frontend Environment Variables
+Start the frontend:
 
-Create the frontend environment file.
-
-#### Windows Command Prompt
-
-```cmd
-copy .env.example .env
-```
-
-#### PowerShell, macOS, or Linux
-
-```bash
-cp .env.example .env
-```
-
-The frontend should point to the backend services:
-
-```env
-VITE_RESOURCE_SERVICE_URL=http://localhost:3001
-VITE_TIMETABLE_SERVICE_URL=http://localhost:3002
-VITE_BOOKING_SERVICE_URL=http://localhost:3003
-```
-
-### Step 8 — Start the Frontend
-
-Run:
-
-```bash
+```powershell
 npm run dev
 ```
 
-Vite will display the local development URL.
+Open the URL printed by Vite. The expected development URL is:
 
-Normally, the frontend runs at:
+`http://localhost:5173`
 
-```text
-http://localhost:5173
-```
+If Vite selects another port because port 5173 is occupied, use the URL printed in the terminal.
 
-Open the displayed URL in your browser.
+### 4.7 Stop and Restart the Application
 
-If port `5173` is already occupied, Vite may automatically select another port, such as:
+Stop the frontend by pressing `Ctrl + C` in its terminal.
 
-```text
-http://localhost:5174
-```
+Stop the backend containers from the project root:
 
-Always use the URL shown in the terminal.
-
-### Step 9 — Stop the Project
-
-#### Stop the Frontend
-
-Press:
-
-```text
-Ctrl + C
-```
-
-#### Stop the Docker Backend
-
-From the project root directory, run:
-
-```bash
+```powershell
 docker compose down
 ```
 
-This stops and removes the running containers while preserving named Docker volumes unless they are explicitly removed.
+To start the backend again:
 
-### Step 10 — Start the Project Again
-
-Once the Docker images have been built, you normally do not need to rebuild them.
-
-#### Start the Backend
-
-```bash
+```powershell
 docker compose up
 ```
 
-#### Start the Frontend
+To rebuild images after backend source, dependency, Dockerfile, or build-configuration changes:
 
-Open another terminal:
-
-```bash
-cd frontend
-npm run dev
-```
-
-### 🔨 When Should You Use `--build`?
-
-Use:
-
-```bash
+```powershell
 docker compose up --build
 ```
 
-when you have made changes to:
+Named database and RabbitMQ volumes are preserved by `docker compose down`. Do not use `docker compose down -v` unless you intentionally want to remove the associated persistent volumes.
 
-- Backend source code
-- Dockerfiles
-- Backend dependencies
-- Docker Compose configuration
-- Other files used while building Docker images
+## 5. Testing
 
-For normal subsequent runs, use:
+Run the test scripts from the project root while the required backend services are running.
 
-```bash
-docker compose up
-```
+### 5.1 Concurrent Booking Test
 
----
-
-## 🧪 Testing
-
-DistriBook includes tests demonstrating distributed-system behaviour.
-
-### 🔄 Concurrency Testing
-
-The concurrency test checks how the system behaves when multiple booking requests are made concurrently.
-
-Run from the project root:
-
-```bash
+```powershell
 node backend/test_concurrency.js
 ```
 
-### 🔐 Extended Authorization Testing
+This test checks simultaneous booking requests for the same time slot. The expected demonstration is that one request succeeds and the conflicting request is rejected.
 
-The authorization test checks access control and role-based behaviour.
+### 5.2 Authorization Test
 
-Run:
-
-```bash
+```powershell
 node backend/test_extended_authorization.js
 ```
 
----
+This script exercises the project's extended authorization scenarios.
 
-## 🧠 Distributed Systems Concepts Demonstrated
+### 5.3 Lamport Clock Test
 
-### 1. Microservices Architecture
-
-The application is divided into independent services:
-
-- Resource Service
-- Timetable Service
-- Booking Service
-- Notification Service
-
-Each service has its own responsibility and can operate independently.
-
-### 2. Service-to-Service Communication
-
-Backend services communicate with other services when information from another service is required.
-
-```text
-Booking Service
-      │
-      ├──► Resource Service
-      │
-      └──► Timetable Service
+```powershell
+node backend/test_lamport.js
 ```
 
-### 3. Message-Based Communication
+This test verifies the logical-clock behaviour implemented in the booking and notification event flow.
 
-RabbitMQ is used to exchange messages between distributed services.
+### 5.4 System Verification
 
-```text
-Booking Service
-      │
-      ▼
-   RabbitMQ
-      │
-      ▼
-Notification Service
+If `system_check.ps1` is present in the repository, run it from PowerShell:
+
+```powershell
+.\system_check.ps1
 ```
 
-This provides asynchronous communication between services.
+Review the script's output for container status, service health responses, API checks, and database resource counts. The script's checks depend on the services and environment being configured correctly.
 
-### 4. Concurrent Booking Handling
+## 6. Distributed Systems Concepts Demonstrated
 
-The system handles multiple booking requests and performs conflict checks to prevent invalid overlapping bookings.
+1. **Microservices Architecture:** Separates resource, timetable, booking, and notification responsibilities.
+2. **Service-to-Service Communication:** Allows backend services to request information from other services.
+3. **Asynchronous Messaging:** Uses RabbitMQ to transmit booking events to the Notification Service.
+4. **Concurrency Handling:** Tests simultaneous requests and booking conflicts.
+5. **Conflict Detection:** Checks resource availability, timetable entries, and existing bookings where supported by the application.
+6. **Database Persistence:** Uses PostgreSQL to store application data.
+7. **Containerization:** Packages backend services into Docker containers.
+8. **Health Monitoring:** Exposes health endpoints and displays service status in the frontend.
+9. **Role-Based Authorization:** Demonstrates access checks based on supported user roles.
+10. **Lamport Logical Clocks:** Demonstrates logical timestamp propagation and clock updates across a message-based event flow.
 
-### 5. Conflict Detection
+## 7. Section 4.2 — Screenshots
 
-Bookings are checked against:
+Capture the following screenshots from the running application for the project report.
 
-- Existing bookings
-- Timetable entries
-- Blocked resources
-- Resource availability
+| No. | Screenshot | Suggested caption |
+|---|---|---|
+| 1 | DistriBook home page | Figure 4.2.1: DistriBook application home page |
+| 2 | Resource listing | Figure 4.2.2: Available classrooms, laboratories, and other resources |
+| 3 | Timetable or availability view | Figure 4.2.3: Timetable and resource availability |
+| 4 | Booking interface | Figure 4.2.4: Resource booking interface |
+| 5 | Concurrent booking test output | Figure 4.2.5: Concurrent booking conflict verification |
+| 6 | Authorization test output | Figure 4.2.6: Authorization test results |
+| 7 | Service health endpoints or frontend status page | Figure 4.2.7: Backend service health monitoring |
+| 8 | Lamport test output or notification with logical timestamp | Figure 4.2.8: Lamport logical clock demonstration |
+| 9 | Docker containers | Figure 4.2.9: DistriBook services running through Docker Compose |
+| 10 | RabbitMQ Management UI | Figure 4.2.10: RabbitMQ message broker management interface |
 
-### 6. Database Persistence
+Use screenshots of features that are actually implemented and verified. Do not label a planned or incomplete feature as a completed demonstration.
 
-PostgreSQL provides persistent storage for the application.
+## 8. Limitations
 
-### 7. Fault Isolation
+- Lamport logical clocks are in-memory and reset when services restart.
+- The project is an academic demonstration and is not presented as a production-ready deployment.
+- Authentication and authorization capabilities should be evaluated against the actual implementation before being used for real users.
+- Health endpoints indicate service health but do not, by themselves, guarantee that every dependent service or business operation is functioning correctly.
 
-Because the application is divided into services, failures can be isolated to individual components instead of requiring the entire application to run as one process.
+## 9. Security Notes
 
-### 8. Containerization
+- Keep `.env` files and credentials out of version control.
+- Use `.env.example` for placeholder configuration only.
+- Change default development credentials before any non-local deployment.
+- Do not expose database or message-broker ports publicly without appropriate access controls.
+- Review authentication, authorization, input validation, and secret management before production use.
 
-Docker containers package backend services and their dependencies into reproducible environments.
+## 10. Useful Docker Commands
 
-### 9. Role-Based Authorization
-
-Different users have different permissions based on their assigned roles.
-
-### 10. Asynchronous Event Processing
-
-Booking-related events can be processed asynchronously by the Notification Service through RabbitMQ.
-
----
-
-## 🔐 Security
-
-Environment files containing passwords, database credentials, API keys, authentication tokens, or other secrets must never be committed to GitHub.
-
-The repository provides `.env.example` files as safe configuration templates.
-
-Never commit:
-
-- `.env` files
-- Passwords
-- API keys
-- Authentication tokens
-- Database credentials
-- Private keys
-- Other secrets
-
-The `.gitignore` file is configured to prevent environment files, dependencies, build output, and other unnecessary files from being committed.
-
----
-
-## 🌱 Environment Configuration
-
-The project uses environment files for local configuration.
-
-| Environment File | Purpose |
-|---|---|
-| `.env.example` | Used for Docker Compose and backend database configuration |
-| `frontend/.env.example` | Used for frontend service URLs |
-
-When setting up the project on another computer:
-
-1. Copy the example environment file.
-2. Create your local `.env` file.
-3. Add your local configuration.
-4. Never commit the actual `.env` file.
-
----
-
-## 🗄️ Data Files
-
-### Timetable Data
-
-```text
-BTech_Computer_Engineering_Timetable.xlsx
-```
-
-Contains the Computer Engineering timetable data used by the project.
-
-### Resource Data
-
-```text
-Classrooms and labs.txt
-```
-
-Contains information about available classrooms, laboratories, halls, and other facilities.
-
----
-
-## 📨 Notification Queries
-
-The project also includes:
-
-```text
-query_notifications.sh
-```
-
-This script can be used for querying notification-related information during development and testing.
-
----
-
-## 🐳 Useful Docker Commands
-
-### Start services
-
-```bash
+```powershell
+# Start containers
 docker compose up
-```
 
-### Start and rebuild services
-
-```bash
+# Build images and start containers
 docker compose up --build
-```
 
-### Run services in detached mode
-
-```bash
+# Start containers in the background
 docker compose up -d
-```
 
-### Stop services
-
-```bash
+# Stop containers
 docker compose down
-```
 
-### View running containers
-
-```bash
+# Show running containers
 docker ps
-```
 
-### View Docker Compose logs
-
-```bash
+# Show service logs
 docker compose logs
+
+# Follow logs for one service
+docker compose logs -f booking-service
+
+# Show container status
+docker compose ps
 ```
 
-### View logs for a specific service
-
-```bash
-docker compose logs booking-service
-```
-
----
-
-## 📚 Academic Project
+## 11. Academic Project Information
 
 | Item | Details |
 |---|---|
-| 🎓 Course | Distributed Systems |
-| 🚀 Project | DistriBook – Distributed Resource Booking System |
-| 🏗️ Architecture | Microservices |
-| 📨 Messaging | RabbitMQ |
-| 🗄️ Database | PostgreSQL |
-| 🐳 Containerization | Docker + Docker Compose |
-| ⚛️ Frontend | React + Vite |
-| 🔷 Backend | Node.js + TypeScript + Express |
-| 🧩 ORM | Prisma |
-| 🌐 Repository | Distributed-Systems-Distribook |
+| Project | DistriBook — Distributed Resource Booking System |
+| Course | Distributed Systems |
+| Architecture | Microservices |
+| Database | PostgreSQL |
+| Messaging | RabbitMQ |
+| Backend | Node.js, TypeScript, Express |
+| ORM | Prisma |
+| Frontend | React and Vite |
+| Containerization | Docker and Docker Compose |
+| Repository | [Distributed-Systems-Distribook](https://github.com/Pradnya1227/Distributed-Systems-Distribook) |
 
----
-
-## 🎯 Project Objective
-
-The objective of DistriBook is to demonstrate how distributed-system principles can be applied to a practical resource booking problem.
-
-The system combines:
-
-```text
-Microservices
-     +
-Message Queues
-     +
-Database Persistence
-     +
-Concurrent Request Handling
-     +
-Role-Based Authorization
-     +
-Containerization
-```
-
-This creates a distributed platform for managing college resources efficiently.
-
----
-
-## 👩‍💻 Developed For
-
-**Distributed Systems – Academic Project**
-
-**DistriBook – Distributed Resource Booking System**
-
-⭐ If you find this project useful, consider giving the repository a star!
+**Project objective:** Demonstrate distributed-system principles through a college resource booking application, including independent services, service communication, asynchronous event processing, concurrency handling, health monitoring, and logical clocks.

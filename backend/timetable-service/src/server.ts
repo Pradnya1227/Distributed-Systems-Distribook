@@ -26,11 +26,15 @@ async function autoSeed() {
       { email: 'faculty@pccoepune.org', name: 'Faculty Member', role: 'faculty' },
       { email: 'coordinator@pccoepune.org', name: 'Hall Coordinator', role: 'coordinator' },
       { email: 'labassistant@pccoepune.org', name: 'Lab Assistant', role: 'labassistant' },
+<<<<<<< HEAD
       { email: 'admin@pccoepune.org', name: 'System Admin', role: 'admin' },
       { email: 'student@demo.com', name: 'Demo Student', role: 'student' },
       { email: 'student1@demo.com', name: 'Demo Student 1', role: 'student' },
       { email: 'student2@demo.com', name: 'Demo Student 2', role: 'student' },
       { email: 'admin@demo.com', name: 'Demo Admin', role: 'admin' }
+=======
+      { email: 'admin@pccoepune.org', name: 'System Admin', role: 'admin' }
+>>>>>>> origin/main
     ];
     for (const u of seedUsers) {
       await prisma.user.upsert({
@@ -62,6 +66,7 @@ async function autoSeed() {
   }
 }
 
+<<<<<<< HEAD
 // Public Health Endpoint (Beacon / Monitoring)
 app.get('/health', (req, res) => {
   res.json({
@@ -72,6 +77,8 @@ app.get('/health', (req, res) => {
   });
 });
 
+=======
+>>>>>>> origin/main
 // Global Auth Middleware
 app.use(authMiddleware);
 

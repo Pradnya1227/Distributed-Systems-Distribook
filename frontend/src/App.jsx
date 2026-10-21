@@ -160,7 +160,11 @@ function checkAvailability(state, resourceId, date, start, end, capacityNeeded) 
   const rs = toMin(start), re = toMin(end);
   const day = dayOf(date);
   const tt = state.timetable[resourceId] || [];
+<<<<<<< HEAD
   for (const e of tt) if ((e.day === day || e.day?.toLowerCase() === day.toLowerCase()) && overlaps(rs, re, toMin(e.start), toMin(e.end)))
+=======
+  for (const e of tt) if (e.day === day && overlaps(rs, re, toMin(e.start), toMin(e.end)))
+>>>>>>> origin/main
     return { available: false, reason: `Occupied by timetable (${e.subject})` };
   const bk = state.bookings.find((b) => {
     if (b.resourceId !== resourceId) return false;
@@ -646,6 +650,7 @@ export default function DistriBookApp() {
           if (!timetableMap[entry.resourceId]) {
             timetableMap[entry.resourceId] = [];
           }
+<<<<<<< HEAD
           const dayFormatted = entry.day || (entry.dayOfWeek ? entry.dayOfWeek.charAt(0).toUpperCase() + entry.dayOfWeek.slice(1).toLowerCase() : "");
           timetableMap[entry.resourceId].push({
             day: dayFormatted,
@@ -654,6 +659,12 @@ export default function DistriBookApp() {
             end: entry.end || entry.endTime,
             startTime: entry.startTime || entry.start,
             endTime: entry.endTime || entry.end,
+=======
+          timetableMap[entry.resourceId].push({
+            day: entry.day,
+            start: entry.start,
+            end: entry.end,
+>>>>>>> origin/main
             subject: entry.subject,
             department: entry.department
           });
@@ -1430,6 +1441,7 @@ function TimetableAdmin({ state, dispatch }) {
           if (!timetableMap[entry.resourceId]) {
             timetableMap[entry.resourceId] = [];
           }
+<<<<<<< HEAD
           const dayFormatted = entry.day || (entry.dayOfWeek ? entry.dayOfWeek.charAt(0).toUpperCase() + entry.dayOfWeek.slice(1).toLowerCase() : "");
           timetableMap[entry.resourceId].push({
             day: dayFormatted,
@@ -1438,6 +1450,12 @@ function TimetableAdmin({ state, dispatch }) {
             end: entry.end || entry.endTime,
             startTime: entry.startTime || entry.start,
             endTime: entry.endTime || entry.end,
+=======
+          timetableMap[entry.resourceId].push({
+            day: entry.day,
+            start: entry.start,
+            end: entry.end,
+>>>>>>> origin/main
             subject: entry.subject,
             department: entry.department
           });
@@ -1638,6 +1656,7 @@ function AdminBookings({ state }) {
 /* =========================================================================
    ADMIN — DISTRIBUTED SYSTEM
    ========================================================================= */
+<<<<<<< HEAD
 function ServicesPage() {
   const [serviceHealth, setServiceHealth] = useState({
     resource: { status: "checking", latency: null, uptime: null, lastChecked: null, error: null },
@@ -1783,6 +1802,25 @@ function ServicesPage() {
           <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Schemas: <code>resource</code>, <code>timetable</code>, <code>booking</code>, <code>notification</code></div>
           <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Isolation: Schema-per-service with row-level locking</div>
         </Card>
+=======
+function ServicesPage({ state }) {
+  return (
+    <div>
+      <SectionTitle title="Services" sub="Each backend service and infrastructure component" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+        {state.services.map((s) => (
+          <Card key={s.id} style={{ borderTop: `3px solid ${s.status === "online" ? C.blue500 : C.red600}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <b>{s.name}</b>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: s.status === "online" ? C.green600 : C.red600, display: "flex", alignItems: "center" }}><StatusDot online={s.status === "online"} />{s.status.toUpperCase()}</span>
+            </div>
+            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 8 }}>Port {s.port} · v{s.version}</div>
+            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4 }}>Instances: {s.instances.length}</div>
+            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Requests: {s.instances.reduce((a, i) => a + i.requests, 0)}</div>
+            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 2 }}>Uptime: {s.uptime}%</div>
+          </Card>
+        ))}
+>>>>>>> origin/main
       </div>
     </div>
   );

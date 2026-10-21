@@ -19,6 +19,7 @@ export async function connectRabbitMQ() {
   }
 }
 
+<<<<<<< HEAD
 // Distributed Systems: Lamport Logical Clock (In-Memory Monotonic Counter)
 let lamportClock = 0;
 
@@ -30,12 +31,15 @@ export function resetLamportClock(val = 0): void {
   lamportClock = val;
 }
 
+=======
+>>>>>>> origin/main
 export async function publishBookingEvent(eventType: string, payload: any) {
   if (!channel) {
     console.warn('RabbitMQ channel not initialized. Event skipped:', eventType);
     return;
   }
   try {
+<<<<<<< HEAD
     // Lamport Send Rule: L_i = L_i + 1 before sending message
     lamportClock += 1;
     const currentClock = lamportClock;
@@ -52,6 +56,15 @@ export async function publishBookingEvent(eventType: string, payload: any) {
       }
     });
     console.log(`[Lamport Clock: L=${currentClock}] Published event ${eventType} to exchange ${EXCHANGE_NAME} with key ${routingKey}`);
+=======
+    const routingKey = eventType.toLowerCase().replace(/_/g, '.');
+    const messageBuffer = Buffer.from(JSON.stringify(payload));
+    channel.publish(EXCHANGE_NAME, routingKey, messageBuffer, {
+      persistent: true,
+      headers: { 'event-type': eventType }
+    });
+    console.log(`Published event ${eventType} to exchange ${EXCHANGE_NAME} with key ${routingKey}`);
+>>>>>>> origin/main
   } catch (error: any) {
     console.error('Failed to publish RabbitMQ event:', error.message);
   }

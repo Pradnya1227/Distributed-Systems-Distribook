@@ -3,7 +3,11 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 import { authMiddleware, requireRoles, AuthenticatedRequest } from './middleware/auth';
+<<<<<<< HEAD
 import { connectRabbitMQ, publishBookingEvent, getLamportClock, resetLamportClock } from './messaging/rabbitmq';
+=======
+import { connectRabbitMQ, publishBookingEvent } from './messaging/rabbitmq';
+>>>>>>> origin/main
 
 const prisma = new PrismaClient();
 const app = express();
@@ -83,6 +87,7 @@ async function fetchTimetableEntries(userEmail: string) {
   }
 }
 
+<<<<<<< HEAD
 // Public Health Endpoint (Beacon / Monitoring)
 app.get('/health', (req, res) => {
   res.json({
@@ -102,6 +107,8 @@ app.get('/lamport', (req, res) => {
   });
 });
 
+=======
+>>>>>>> origin/main
 app.use(authMiddleware);
 
 // GET /bookings: Fetch list of bookings
@@ -612,11 +619,15 @@ async function autoSeed() {
       { email: 'faculty@pccoepune.org', name: 'Faculty Member', role: 'faculty' },
       { email: 'coordinator@pccoepune.org', name: 'Hall Coordinator', role: 'coordinator' },
       { email: 'labassistant@pccoepune.org', name: 'Lab Assistant', role: 'labassistant' },
+<<<<<<< HEAD
       { email: 'admin@pccoepune.org', name: 'System Admin', role: 'admin' },
       { email: 'student@demo.com', name: 'Demo Student', role: 'student' },
       { email: 'student1@demo.com', name: 'Demo Student 1', role: 'student' },
       { email: 'student2@demo.com', name: 'Demo Student 2', role: 'student' },
       { email: 'admin@demo.com', name: 'Demo Admin', role: 'admin' }
+=======
+      { email: 'admin@pccoepune.org', name: 'System Admin', role: 'admin' }
+>>>>>>> origin/main
     ];
     for (const u of seedUsers) {
       await prisma.user.upsert({
